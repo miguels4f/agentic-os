@@ -1,0 +1,52 @@
+{
+  "files": {
+    "skills/accessibility-audit/SKILL.md": {
+      "name": "Accessibility check",
+      "description": "Guides an AI assistant to check a website for accessibility problems with an automatic scan plus a keyboard test before release."
+    },
+    "skills/browser-test-hygiene/SKILL.md": {
+      "name": "Reliable browser tests",
+      "description": "Gives rules for writing automatic browser tests that give the same result every time, without fixed waits or shared data."
+    },
+    "skills/money-flow-integrity/SKILL.md": {
+      "name": "Money and booking safety",
+      "description": "Guides an AI assistant to check that bookings, payments, orders and stock holds cannot be charged twice, lost or left half-done."
+    },
+    "skills/persona-walkthrough/SKILL.md": {
+      "name": "Customer walkthrough",
+      "description": "Has an AI assistant play a defined buyer scrolling a website or signup flow, to find what confuses or turns them away before publishing."
+    },
+    "skills/slopbuster-audit/references/frontend-review.md": {
+      "name": "Screens review checklist",
+      "description": "Gives the criteria for reviewing the visible, customer-facing part of a web app built with React-style tools."
+    },
+    "skills/slopbuster-audit/references/output-contract.md": {
+      "name": "Audit report layout",
+      "description": "Defines how audit results are laid out: a scores file, an overview, a fix plan and one note per category."
+    },
+    "skills/slopbuster-audit/references/python-review.md": {
+      "name": "Python server review checklist",
+      "description": "Gives the criteria for reviewing a Python server: structure, handling slow or failing outside services, security and monitoring."
+    },
+    "skills/slopbuster-audit/references/repo-audit.md": {
+      "name": "Whole-project audit guide",
+      "description": "Explains what to look for when auditing every file of a project, changed or not, for sloppy or fake code."
+    },
+    "skills/slopbuster-audit/references/rust-review.md": {
+      "name": "Rust server review checklist",
+      "description": "Gives the criteria for reviewing a Rust server: requests, background tasks, resource limits, security and monitoring."
+    },
+    "skills/slopbuster-audit/references/simulation.md": {
+      "name": "User journey simulation",
+      "description": "Explains how to role-play a real user step by step through each flow to find problems that reading code would miss."
+    },
+    "skills/slopbuster-audit/SKILL.md": {
+      "name": "Code quality audit",
+      "description": "Guides an AI assistant to audit a project or change for AI-written filler, fake code, duplication and technical debt."
+    },
+    "skills/ui-finish-gate/SKILL.md": {
+      "name": "Screen release gate",
+      "description": "Has an AI assistant write a design contract for a new screen and give a hold or pass verdict using real desktop and mobile screenshots."
+    }
+  }
+}

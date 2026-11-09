@@ -15,3 +15,6 @@ build/
 !.env.example
 # The private scrubbing map must never live in this repository.
 private-map.json
+
+# Local Floorplan working folder (the published map is docs/map.html)
+floorplan/

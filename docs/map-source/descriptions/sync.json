@@ -1,0 +1,12 @@
+{
+  "files": {
+    "tools/sync-config.json": {
+      "name": "Sync settings",
+      "description": "Lists which skills and other files get copied from the maintainer's private setup into this public kit."
+    },
+    "tools/sync.py": {
+      "name": "Private-to-public sync",
+      "description": "Copies the chosen skills and Wilfred from the maintainer's private originals into this kit, scrubbing anything private along the way."
+    }
+  }
+}

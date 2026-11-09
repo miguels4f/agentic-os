@@ -1,0 +1,64 @@
+{
+  "files": {
+    "wilfred/src/hyperwilfred_core/evaluators/__init__.py": {
+      "name": "Automatic checks runner",
+      "description": "Runs the set of automatic checks in order and combines them into one pass or fail result."
+    },
+    "wilfred/src/hyperwilfred_core/evaluators/base.py": {
+      "name": "Check building block",
+      "description": "Shared base for all automatic checks, including a safe way to run a program and capture what it prints."
+    },
+    "wilfred/src/hyperwilfred_core/evaluators/ci_parity.py": {
+      "name": "Pre-push pipeline check",
+      "description": "Runs the same checks the target repository's own pull-request pipeline would run, so failures show up before pushing."
+    },
+    "wilfred/src/hyperwilfred_core/evaluators/code/__init__.py": {
+      "name": "Code checks",
+      "description": "Groups the code-quality checks: style, types, tests and coverage."
+    },
+    "wilfred/src/hyperwilfred_core/evaluators/code/coverage_evaluator.py": {
+      "name": "Test coverage check",
+      "description": "Measures how much of the code the tests actually exercise."
+    },
+    "wilfred/src/hyperwilfred_core/evaluators/code/mypy_evaluator.py": {
+      "name": "Type check",
+      "description": "Runs the type checker to catch mismatched kinds of data before the code runs."
+    },
+    "wilfred/src/hyperwilfred_core/evaluators/code/node_evaluator.py": {
+      "name": "JavaScript checks",
+      "description": "Runs the build, style and test commands of JavaScript projects."
+    },
+    "wilfred/src/hyperwilfred_core/evaluators/code/pytest_evaluator.py": {
+      "name": "Test run",
+      "description": "Runs the Python tests and records what passed and failed."
+    },
+    "wilfred/src/hyperwilfred_core/evaluators/code/ruff_evaluator.py": {
+      "name": "Style check",
+      "description": "Runs the style checker and turns its findings into pass or fail results."
+    },
+    "wilfred/src/hyperwilfred_core/evaluators/flaky.py": {
+      "name": "Unreliable test check",
+      "description": "Re-runs tests the work added or changed and blocks if any gives different answers on different runs."
+    },
+    "wilfred/src/hyperwilfred_core/evaluators/registry.py": {
+      "name": "Checks per tech stack",
+      "description": "Picks the right set of automatic checks for each kind of project, such as Python or JavaScript."
+    },
+    "wilfred/src/hyperwilfred_core/evaluators/verification.py": {
+      "name": "Check result formats",
+      "description": "Defines how a single check result, a finding and the whole verification report are recorded."
+    },
+    "wilfred/src/hyperwilfred_core/quality.py": {
+      "name": "Quality loop",
+      "description": "Scores the work, assembles independent critics and patches problems, refusing to pass until required critics wrote their own reviews."
+    },
+    "wilfred/src/hyperwilfred_core/review.py": {
+      "name": "Read-only review",
+      "description": "Audits a repository or folder with the critic panel without changing it; links outside the target are not followed and its git settings cannot run commands."
+    },
+    "wilfred/src/hyperwilfred_core/verify_checks.py": {
+      "name": "Final verify checks",
+      "description": "Runs the last automatic checks of a job and records any human decision to accept a finding."
+    }
+  }
+}

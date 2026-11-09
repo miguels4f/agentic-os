@@ -1,0 +1,8 @@
+{
+  "files": {
+    "docs/guide.md": {
+      "name": "Setup guide",
+      "description": "Explains the folder layout and how Codex, Claude Code and Cursor each read it, so you only edit one instructions file and add skills."
+    }
+  }
+}

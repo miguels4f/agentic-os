@@ -1,0 +1,450 @@
+{
+  "$schema": "floorplan/architecture@1",
+  "audience": "everyone",
+  "include": [
+    "code",
+    "docs",
+    "config"
+  ],
+  "project": {
+    "name": "agentic-os",
+    "summary": "A starter kit for working with AI coding assistants (Codex, Claude Code, Cursor): one shared instructions file, ready-made skills, an installer for well-known third-party tools, a local test runner, and Wilfred, a system that builds and reviews software and agents with hard quality checks. A weekly job keeps the kit up to date and proposes changes for review.",
+    "entrypoints": [
+      "install.sh",
+      "third-party/install.sh",
+      "tools/sync.py",
+      "wilfred/src/hyperwilfred_core/cli.py"
+    ]
+  },
+  "nodes": [
+    {
+      "id": "kit",
+      "label": "Getting started",
+      "kind": "config",
+      "summary": "What a newcomer reads and runs first: the explanation, the installer and the templates to copy into a project.",
+      "paths": [
+        "README.md",
+        "LICENSE",
+        "THIRD_PARTY_NOTICES.md",
+        ".gitignore"
+      ]
+    },
+    {
+      "id": "kit.docs",
+      "parent": "kit",
+      "label": "Guides",
+      "kind": "config",
+      "summary": "Plain explanations of how each assistant reads the instructions and skills, and how to set them up.",
+      "paths": [
+        "docs/**"
+      ]
+    },
+    {
+      "id": "kit.install",
+      "parent": "kit",
+      "label": "Installer",
+      "kind": "script",
+      "summary": "Copies the kit's skills and the local test runner onto your computer, without overwriting anything you already have.",
+      "paths": [
+        "install.sh",
+        "bin/**"
+      ]
+    },
+    {
+      "id": "kit.template",
+      "parent": "kit",
+      "label": "Templates",
+      "kind": "config",
+      "summary": "Starting files for a project and for your personal settings: the shared instructions file, the small file that points Claude to it, and an optional memory.",
+      "paths": [
+        "template/**"
+      ]
+    },
+    {
+      "id": "skills",
+      "label": "Skills",
+      "kind": "library",
+      "summary": "Reusable instructions that teach the assistant how to do a specific job well, such as reviewing a screen or responding to a leaked key.",
+      "paths": [
+        "skills/**"
+      ]
+    },
+    {
+      "id": "skills.quality",
+      "parent": "skills",
+      "label": "Quality checks",
+      "kind": "feature",
+      "summary": "Skills that check finished work: accessibility, visual polish, sloppy AI code, money flows, browser tests and walking through the app as a real user.",
+      "paths": [
+        "skills/accessibility-audit/**",
+        "skills/ui-finish-gate/**",
+        "skills/slopbuster-audit/**",
+        "skills/persona-walkthrough/**",
+        "skills/browser-test-hygiene/**",
+        "skills/money-flow-integrity/**"
+      ]
+    },
+    {
+      "id": "skills.planning",
+      "parent": "skills",
+      "label": "Planning and handover",
+      "kind": "feature",
+      "summary": "Skills for deciding what to build and passing work on: specs, small local-first products, checking for existing tools first, handover prompts and system maps.",
+      "paths": [
+        "skills/workflow-spec/**",
+        "skills/local-first-mvp/**",
+        "skills/buscar-antes-de-construir/**",
+        "skills/handoff-prompt/**",
+        "skills/annotated-system-map/**"
+      ]
+    },
+    {
+      "id": "skills.ops",
+      "parent": "skills",
+      "label": "Safety and upkeep",
+      "kind": "feature",
+      "summary": "Skills that keep things safe and tidy: leaked keys, automation rules, running checks locally and keeping instruction files in order.",
+      "paths": [
+        "skills/secret-leak-response/**",
+        "skills/automation-governance/**",
+        "skills/local-ci/**",
+        "skills/agents-maintainer/**"
+      ]
+    },
+    {
+      "id": "skills.misc",
+      "parent": "skills",
+      "label": "Everyday helpers",
+      "kind": "feature",
+      "summary": "General helpers, such as summarising a YouTube video.",
+      "paths": [
+        "skills/youtube-summarizer/**"
+      ]
+    },
+    {
+      "id": "thirdparty",
+      "label": "Third-party tools",
+      "kind": "script",
+      "summary": "A list of well-known tools by other authors and a script that installs each one from its own source, so nothing of theirs is copied here.",
+      "paths": [
+        "third-party/**"
+      ]
+    },
+    {
+      "id": "sync",
+      "label": "Weekly update",
+      "kind": "worker",
+      "summary": "Once a week, copies the latest skills and Wilfred into the kit, removes personal and client names, scans for leaks, runs Wilfred's tests and proposes the changes for review. It never publishes on its own.",
+      "paths": [
+        "tools/**"
+      ]
+    },
+    {
+      "id": "wilfred",
+      "label": "Wilfred",
+      "kind": "service",
+      "summary": "A local system that builds, improves and reviews software, and designs working AI agents, with hard quality checks and human approval for risky steps.",
+      "paths": [
+        "wilfred/**"
+      ]
+    },
+    {
+      "id": "wilfred.cli",
+      "parent": "wilfred",
+      "label": "Command line",
+      "kind": "ui",
+      "summary": "The wilfred command people type, plus the demo and the connection to the AI model.",
+      "paths": [
+        "wilfred/src/hyperwilfred_core/cli.py",
+        "wilfred/src/hyperwilfred_core/__init__.py",
+        "wilfred/src/hyperwilfred_core/live_demo.py",
+        "wilfred/src/hyperwilfred_core/codex.py",
+        "wilfred/examples/**"
+      ]
+    },
+    {
+      "id": "wilfred.engine",
+      "parent": "wilfred",
+      "label": "Work engine",
+      "kind": "library",
+      "summary": "Splits a job into small work packets, runs them step by step, saves progress so it can resume after a crash, and tracks cost and what was learned.",
+      "paths": [
+        "wilfred/src/hyperwilfred_core/engine.py",
+        "wilfred/src/hyperwilfred_core/pipeline.py",
+        "wilfred/src/hyperwilfred_core/compiler.py",
+        "wilfred/src/hyperwilfred_core/durable.py",
+        "wilfred/src/hyperwilfred_core/resume.py",
+        "wilfred/src/hyperwilfred_core/run_store.py",
+        "wilfred/src/hyperwilfred_core/wave_planner.py",
+        "wilfred/src/hyperwilfred_core/plan_lint.py",
+        "wilfred/src/hyperwilfred_core/schemas.py",
+        "wilfred/src/hyperwilfred_core/escalation.py",
+        "wilfred/src/hyperwilfred_core/cost.py",
+        "wilfred/src/hyperwilfred_core/observability.py",
+        "wilfred/src/hyperwilfred_core/traceability.py",
+        "wilfred/src/hyperwilfred_core/reproducibility.py",
+        "wilfred/src/hyperwilfred_core/known_failures.py",
+        "wilfred/src/hyperwilfred_core/learning.py",
+        "wilfred/src/hyperwilfred_core/regression.py",
+        "wilfred/src/hyperwilfred_core/steps/**"
+      ]
+    },
+    {
+      "id": "wilfred.safety",
+      "parent": "wilfred",
+      "label": "Safety and approvals",
+      "kind": "library",
+      "summary": "Keeps the AI inside the files it may touch, blocks risky actions, and requires a signed human approval before protected steps.",
+      "paths": [
+        "wilfred/src/hyperwilfred_core/guardrails.py",
+        "wilfred/src/hyperwilfred_core/gates.py",
+        "wilfred/src/hyperwilfred_core/gate_declaration.py",
+        "wilfred/src/hyperwilfred_core/approvals.py",
+        "wilfred/src/hyperwilfred_core/path_safety.py",
+        "wilfred/src/hyperwilfred_core/protected_paths.py",
+        "wilfred/src/hyperwilfred_core/severity_floor.py",
+        "wilfred/src/hyperwilfred_core/hooks/**",
+        "wilfred/tools/**"
+      ]
+    },
+    {
+      "id": "wilfred.quality",
+      "parent": "wilfred",
+      "label": "Quality and review",
+      "kind": "library",
+      "summary": "Checks the work: runs tests, style and type checks, catches flaky tests, and reviews code changes for problems.",
+      "paths": [
+        "wilfred/src/hyperwilfred_core/quality.py",
+        "wilfred/src/hyperwilfred_core/review.py",
+        "wilfred/src/hyperwilfred_core/verify_checks.py",
+        "wilfred/src/hyperwilfred_core/evaluators/**"
+      ]
+    },
+    {
+      "id": "wilfred.foundry",
+      "parent": "wilfred",
+      "label": "Agent Foundry",
+      "kind": "feature",
+      "summary": "Designs, builds and tests small AI agents and workflows from a goal, running them in a locked sandbox and keeping evidence of every run.",
+      "paths": [
+        "wilfred/src/hyperwilfred_core/foundry*.py",
+        "wilfred/src/hyperwilfred_core/templates/**"
+      ]
+    },
+    {
+      "id": "wilfred.cc",
+      "parent": "wilfred",
+      "label": "Command center",
+      "kind": "ui",
+      "summary": "A read-only overview page of projects, runs and what needs your attention.",
+      "paths": [
+        "wilfred/src/hyperwilfred_core/command_center/**"
+      ]
+    },
+    {
+      "id": "wilfred.docs",
+      "parent": "wilfred",
+      "label": "Wilfred guides and skills",
+      "kind": "config",
+      "summary": "Wilfred's own explanations, rules, licence, project settings and the skills it ships with.",
+      "paths": [
+        "wilfred/docs/**",
+        "wilfred/*.md",
+        "wilfred/LICENSE",
+        "wilfred/pyproject.toml",
+        "wilfred/.gitignore",
+        "wilfred/skills/**",
+        "wilfred/.agents/**",
+        "wilfred/.claude/**",
+        "wilfred/.github/**"
+      ]
+    },
+    {
+      "id": "wilfred.tests",
+      "parent": "wilfred",
+      "label": "Wilfred tests",
+      "kind": "test",
+      "summary": "About 2,000 automatic checks that prove Wilfred works and its safety rules hold.",
+      "paths": [
+        "wilfred/tests/**",
+        "wilfred/conftest.py"
+      ]
+    },
+    {
+      "id": "github",
+      "label": "GitHub",
+      "kind": "external",
+      "summary": "Where the kit is stored, where third-party tools are downloaded from, and where weekly change proposals are opened.",
+      "hosts": [
+        "github.com",
+        "api.github.com"
+      ]
+    },
+    {
+      "id": "codexcli",
+      "label": "AI model (Codex)",
+      "kind": "external",
+      "summary": "The AI model Wilfred can call to do real reasoning, through the Codex command line on your computer."
+    },
+    {
+      "id": "dbos",
+      "label": "DBOS",
+      "kind": "external",
+      "summary": "A library that saves each step of a long job so it can continue after a crash.",
+      "packages": [
+        "pypi:dbos"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "from": "kit.install",
+      "to": "skills",
+      "kind": "call",
+      "label": "copies to your computer",
+      "description": "install.sh copies every skill into your skills folder and links it for Claude Code."
+    },
+    {
+      "from": "thirdparty",
+      "to": "github",
+      "kind": "http",
+      "label": "downloads from each author",
+      "description": "Each tool is installed from its author's own repository."
+    },
+    {
+      "from": "sync",
+      "to": "skills",
+      "kind": "data",
+      "label": "refreshes weekly",
+      "description": "Copies the latest version of each skill and removes personal names."
+    },
+    {
+      "from": "sync",
+      "to": "wilfred",
+      "kind": "data",
+      "label": "refreshes weekly",
+      "description": "Copies the latest published Wilfred, without its history, and runs its tests."
+    },
+    {
+      "from": "sync",
+      "to": "github",
+      "kind": "http",
+      "label": "opens a change proposal",
+      "description": "Only if something changed and the leak scan is clean. It never merges."
+    },
+    {
+      "from": "wilfred.cli",
+      "to": "codexcli",
+      "kind": "call",
+      "label": "asks the AI model"
+    }
+  ],
+  "flows": [
+    {
+      "id": "start",
+      "title": "Setting up a new computer",
+      "steps": [
+        {
+          "node": "kit",
+          "note": "Read the README: what is in the box and the 10-minute quick start."
+        },
+        {
+          "node": "kit.install",
+          "note": "Run install.sh: it copies the skills and the local test runner onto your computer."
+        },
+        {
+          "node": "skills",
+          "note": "The skills now show up in Codex and Claude Code."
+        },
+        {
+          "node": "kit.template",
+          "note": "Copy the project template into each project and fill in its instructions file."
+        },
+        {
+          "node": "thirdparty",
+          "note": "Optionally install well-known tools from their own authors."
+        }
+      ]
+    },
+    {
+      "id": "weekly",
+      "title": "The weekly update",
+      "steps": [
+        {
+          "node": "sync",
+          "note": "Every Monday, the job starts from the latest published kit."
+        },
+        {
+          "node": "skills",
+          "note": "It copies the newest skills and removes personal and client names."
+        },
+        {
+          "node": "wilfred",
+          "note": "It copies the newest Wilfred and runs its full test suite."
+        },
+        {
+          "node": "github",
+          "note": "If something changed and the leak scan is clean, it opens a change proposal for review. If the scan finds anything, it stops and warns instead. Nothing is published until you approve it."
+        }
+      ]
+    },
+    {
+      "id": "foundry",
+      "title": "Wilfred builds an agent",
+      "steps": [
+        {
+          "node": "wilfred.cli",
+          "note": "You describe the goal with the wilfred command."
+        },
+        {
+          "node": "wilfred.foundry",
+          "note": "Agent Foundry designs the agent and builds it."
+        },
+        {
+          "node": "wilfred.safety",
+          "note": "Safety rules keep it inside its sandbox; risky steps need your signed approval."
+        },
+        {
+          "node": "wilfred.quality",
+          "note": "The result is tested; defects are repaired and the evidence is kept."
+        }
+      ]
+    }
+  ],
+  "tour": [
+    {
+      "node": "kit",
+      "title": "What this is",
+      "note": "A starter kit so anyone can work with AI coding assistants the same way: one instructions file, ready-made skills and safe defaults."
+    },
+    {
+      "node": "skills",
+      "title": "Skills",
+      "note": "Ready-made know-how the assistant follows for specific jobs, grouped by what they help with."
+    },
+    {
+      "node": "thirdparty",
+      "title": "Tools by other authors",
+      "note": "Recommended tools are listed with links and installed from their own source, never copied here."
+    },
+    {
+      "node": "wilfred",
+      "title": "Wilfred",
+      "note": "The biggest part: a system that builds and reviews software and AI agents with hard checks and human approvals."
+    },
+    {
+      "node": "sync",
+      "title": "How it stays current",
+      "note": "A weekly job refreshes the kit, checks it for leaks and proposes changes for review; it never publishes on its own."
+    },
+    {
+      "node": "wilfred/src/hyperwilfred_core/review.py",
+      "title": "A key file",
+      "note": "Wilfred's code reviewer. It is built to safely review a repository it does not trust: it never follows links out of it and never lets it run programs."
+    }
+  ],
+  "ignore": [
+    "docs/map.html",
+    "docs/map-source/**"
+  ]
+}

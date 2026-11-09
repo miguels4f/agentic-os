@@ -1,0 +1,68 @@
+{
+  "files": {
+    "wilfred/src/hyperwilfred_core/command_center/__init__.py": {
+      "name": "Command center package",
+      "description": "Entry point of the read-only overview that takes one snapshot of a workspace's projects and runs."
+    },
+    "wilfred/src/hyperwilfred_core/command_center/attention.py": {
+      "name": "Needs your attention",
+      "description": "Works out what needs the owner, such as pending approvals, and lists it most urgent first."
+    },
+    "wilfred/src/hyperwilfred_core/command_center/collect_closed.py": {
+      "name": "Closed runs list",
+      "description": "Reads the list of runs the owner closed so they stop asking for attention."
+    },
+    "wilfred/src/hyperwilfred_core/command_center/collect_memory.py": {
+      "name": "Memory summary",
+      "description": "Counts the shared memory notes by type and flags any that are malformed."
+    },
+    "wilfred/src/hyperwilfred_core/command_center/collect_ops.py": {
+      "name": "Tasks and sales feed",
+      "description": "Reads the ops task list through its own command so open items can appear in the attention list."
+    },
+    "wilfred/src/hyperwilfred_core/command_center/collect_projects.py": {
+      "name": "Project finder",
+      "description": "Finds every repository, branch and worktree in the workspace and reports what could not be read."
+    },
+    "wilfred/src/hyperwilfred_core/command_center/collect_runs.py": {
+      "name": "Run finder",
+      "description": "Finds every run in each project's run folder and keeps the most recently updated copy of each."
+    },
+    "wilfred/src/hyperwilfred_core/command_center/gitconfig.py": {
+      "name": "Git filter finder",
+      "description": "Reads git settings as plain text to find content filters that could run commands, without running git."
+    },
+    "wilfred/src/hyperwilfred_core/command_center/gitread.py": {
+      "name": "Safe git reader",
+      "description": "Runs only a short list of read-only git commands and strips passwords from web addresses."
+    },
+    "wilfred/src/hyperwilfred_core/command_center/model.py": {
+      "name": "Snapshot data shapes",
+      "description": "Defines the shape of the snapshot: projects, runs, pending approvals, costs and where each fact came from."
+    },
+    "wilfred/src/hyperwilfred_core/command_center/opsread.py": {
+      "name": "Safe ops reader",
+      "description": "Runs only two read-only forms of the ops command; the only program besides git that the overview starts."
+    },
+    "wilfred/src/hyperwilfred_core/command_center/paths.py": {
+      "name": "Path helpers",
+      "description": "Shared tools to compare folders reliably, including through shortcuts, and to spot paths inside password folders."
+    },
+    "wilfred/src/hyperwilfred_core/command_center/render.py": {
+      "name": "Overview page builder",
+      "description": "Turns the snapshot into one self-contained web page and writes nothing itself."
+    },
+    "wilfred/src/hyperwilfred_core/command_center/run_detail.py": {
+      "name": "Run details",
+      "description": "Reads one run's events, quality result, waiting approvals and cost; cost shows unknown rather than zero."
+    },
+    "wilfred/src/hyperwilfred_core/command_center/snapshot.py": {
+      "name": "Snapshot writer",
+      "description": "Assembles everything into one snapshot and writes the data file and web page outside the workspace."
+    },
+    "wilfred/src/hyperwilfred_core/command_center/text_es.py": {
+      "name": "Spanish page text",
+      "description": "Holds every Spanish sentence shown on the overview page."
+    }
+  }
+}

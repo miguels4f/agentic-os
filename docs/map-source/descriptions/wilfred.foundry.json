@@ -1,0 +1,76 @@
+{
+  "files": {
+    "wilfred/src/hyperwilfred_core/foundry_acceptance.py": {
+      "name": "Foundry acceptance demo",
+      "description": "Runs a full demonstration of the agent factory end to end, clearly labelled so test stand-ins are never mistaken for real model results."
+    },
+    "wilfred/src/hyperwilfred_core/foundry_agents.py": {
+      "name": "Model providers",
+      "description": "Connects agents to a real AI model through the Codex command line, or to a clearly labelled test stand-in, with a time limit on every call."
+    },
+    "wilfred/src/hyperwilfred_core/foundry_design.py": {
+      "name": "Agent design choices",
+      "description": "Picks which known kind of task an agent is for and the smallest design that can do it."
+    },
+    "wilfred/src/hyperwilfred_core/foundry_execution.py": {
+      "name": "Agent test runner",
+      "description": "Writes an agent bundle to disk and runs it in a limited local process through normal, edge, hostile and recovery scenarios."
+    },
+    "wilfred/src/hyperwilfred_core/foundry_families.py": {
+      "name": "Task type contracts",
+      "description": "Holds the written contracts for each supported kind of agent task; picking one also picks the design."
+    },
+    "wilfred/src/hyperwilfred_core/foundry_intake.py": {
+      "name": "Goal intake",
+      "description": "Pulls only stated facts from the owner's goal and asks the single most useful next question instead of guessing."
+    },
+    "wilfred/src/hyperwilfred_core/foundry_lifecycle.py": {
+      "name": "Agent repair",
+      "description": "Prepares and checks a fix to an agent first, and only then publishes the new version."
+    },
+    "wilfred/src/hyperwilfred_core/foundry_models.py": {
+      "name": "Foundry data definitions",
+      "description": "Defines the fixed shapes of agent projects, stages, evidence, permissions and decisions used across the factory."
+    },
+    "wilfred/src/hyperwilfred_core/foundry_runtime.py": {
+      "name": "Agent builder",
+      "description": "Turns an approved agent design into a runnable Python bundle, refusing capabilities it cannot support and blocking network use."
+    },
+    "wilfred/src/hyperwilfred_core/foundry_sandbox.py": {
+      "name": "Agent sandbox",
+      "description": "Wraps generated agent code in an operating-system lock: no home folder, no file writes, no network, no launching other programs."
+    },
+    "wilfred/src/hyperwilfred_core/foundry_scenarios.py": {
+      "name": "Agent test cases",
+      "description": "Holds the shared test cases and pass checks used to evaluate an agent and to catch regressions."
+    },
+    "wilfred/src/hyperwilfred_core/foundry_scout.py": {
+      "name": "Reusable parts scout",
+      "description": "Searches for existing agent components to reuse and rates each with its evidence, using GitHub search or a local test source."
+    },
+    "wilfred/src/hyperwilfred_core/foundry_storage.py": {
+      "name": "Safe saving",
+      "description": "Saves agent project records and builds so a crash can never leave a half-written version, and old versions stay intact."
+    },
+    "wilfred/src/hyperwilfred_core/foundry_validation.py": {
+      "name": "Agent spec checker",
+      "description": "Checks an agent specification for defects and returns a clear list of what to fix."
+    },
+    "wilfred/src/hyperwilfred_core/foundry.py": {
+      "name": "Agent Foundry",
+      "description": "Drives an agent project from a vague goal through questions, checks, building, testing, repair and packaging, and can resume where it stopped."
+    },
+    "wilfred/src/hyperwilfred_core/templates/evidence_runner.py": {
+      "name": "Generated agent template",
+      "description": "The standalone agent program placed in each bundle; it asks the trusted host to make model calls and never calls a model itself."
+    },
+    "wilfred/src/hyperwilfred_core/templates/provider_broker.py": {
+      "name": "Model call go-between",
+      "description": "Passes model requests between a generated agent and the real model, cutting off silent or broken agents at a deadline."
+    },
+    "wilfred/src/hyperwilfred_core/templates/provider_events.py": {
+      "name": "Model reply reader",
+      "description": "Reads and classifies the model command's output, keeping error notes without storing raw messages."
+    }
+  }
+}

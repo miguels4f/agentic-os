@@ -1,0 +1,32 @@
+{
+  "files": {
+    "skills/agents-maintainer/agents/openai.yaml": {
+      "name": "Codex listing for instructions upkeep",
+      "description": "Gives the Codex app the display name, short blurb and starter prompt for the skill that keeps the AI instructions file current."
+    },
+    "skills/agents-maintainer/references/automation-prompt-template.md": {
+      "name": "Upkeep routine prompt",
+      "description": "Provides a ready prompt to paste into a recurring routine so the project's AI instructions file stays up to date."
+    },
+    "skills/agents-maintainer/SKILL.md": {
+      "name": "Keep AI instructions current",
+      "description": "Guides an AI assistant to create and update a project's AI instructions file so it matches how the project really works."
+    },
+    "skills/automation-governance/SKILL.md": {
+      "name": "Automation approval check",
+      "description": "Has an AI assistant weigh value and risk before any scheduled task or unattended routine is created, and return approve, pilot or reject."
+    },
+    "skills/local-ci/ci_plan.py": {
+      "name": "Local checks planner",
+      "description": "Lists which automatic checks GitHub would run for a change, so they can be replayed on the user's own computer."
+    },
+    "skills/local-ci/SKILL.md": {
+      "name": "Run checks locally",
+      "description": "Guides an AI assistant to run a project's quality checks on the local machine when GitHub's automatic checks are unavailable."
+    },
+    "skills/secret-leak-response/SKILL.md": {
+      "name": "Leaked password response",
+      "description": "Gives the order of steps to follow the moment a password or key shows up in code, a commit or a chat, including never repeating it."
+    }
+  }
+}

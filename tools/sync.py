@@ -14,7 +14,9 @@ Commands (run from anywhere; --root defaults to this repository):
   check    fail if any private term (denylist), key material or a leak found by gitleaks
            remains anywhere in the tree
   weekly   build + check + Wilfred tests in a fresh worktree on a new branch, then push it
-           and open a pull request (with --dry-run: everything except push and PR)
+           and open a pull request (with --dry-run: everything except push and PR); when
+           anything changed it also redraws the kit map
+  map      redraw docs/map.html from docs/map-source with the Floorplan plugin
 
 File modes in tools/sync-state.json:
   auto      public file == scrubbed source; rewritten automatically on every build
@@ -24,7 +26,8 @@ File modes in tools/sync-state.json:
 
 Private inputs (never committed): ~/.config/agentic-os/private-map.json, override with
 AGENTIC_OS_PRIVATE_MAP. See tools/private-map.example.json for its shape.
-Standard library only; needs git, gitleaks, uv and (for weekly without --dry-run) gh.
+Standard library only; needs git, gitleaks, uv, node with the Floorplan plugin (for the map)
+and (for weekly without --dry-run) gh.
 """
 from __future__ import annotations
 
@@ -237,6 +240,96 @@ def write_state(path: Path, state: dict) -> None:
     path.write_text(json.dumps(dict(sorted(state.items())), indent=1) + "\n", encoding="utf-8")
 
 
+# ----------------------------------------------------------------------------- map
+MAP_SOURCE = Path("docs") / "map-source"
+MAP_FILE = Path("docs") / "map.html"
+
+
+def _version_key(path: Path) -> list:
+    return [int(n) if n.isdigit() else 0 for n in path.parts[-4].split(".")]
+
+
+def find_floorplan(pmap: dict) -> Path | None:
+    """Locate the Floorplan plugin's scripts folder (newest installed version)."""
+    override = pmap.get("sources", {}).get("floorplan_scripts")
+    if override:
+        cands = [Path(override).expanduser()]
+    else:
+        cands = sorted(Path.home().glob(".claude/plugins/cache/floorplan/floorplan/*/skills/floorplan/scripts"),
+                       key=_version_key)
+    for cand in reversed(cands):
+        if (cand / "build.mjs").exists():
+            return cand
+    return None
+
+
+def _fill_skill_descriptions(desc_dir: Path, root: Path) -> int:
+    """Give new SKILL.md entries the skill's own one-line description."""
+    filled = 0
+    for jf in sorted(desc_dir.glob("*.json")):
+        data = json.loads(jf.read_text(encoding="utf-8"))
+        changed = False
+        for rel, entry in data.get("files", {}).items():
+            if entry.get("description") or not rel.endswith("SKILL.md"):
+                continue
+            text = (root / rel).read_text(encoding="utf-8", errors="replace")
+            m = re.search(r"^description:\s*(.+)$", text.split("\n---", 1)[0], re.M)
+            if not m:
+                continue
+            desc = m.group(1).strip().strip("'\"")
+            desc = re.split(r"(?<=[.!?])\s", desc, maxsplit=1)[0][:220]
+            entry["description"] = desc
+            entry.pop("review", None)
+            changed = True
+            filled += 1
+        if changed:
+            jf.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    return filled
+
+
+def redraw_map(root: Path, pmap: dict) -> str:
+    """Rebuild docs/map.html from docs/map-source with the Floorplan plugin.
+
+    The map's structure and descriptions live in docs/map-source (reviewed like any other file);
+    this only redraws it for the files present now. New files get a skeleton entry; new skills
+    take their description from their own SKILL.md. Returns a one-line note for the report.
+    """
+    scripts = find_floorplan(pmap)
+    src = root / MAP_SOURCE
+    node = shutil.which("node")
+    if not src.joinpath("architecture.json").exists():
+        return "map: not redrawn (docs/map-source/architecture.json missing)"
+    if not scripts or not node:
+        return "map: NOT redrawn (Floorplan plugin or node not found on this computer)"
+    fp = root / "floorplan"
+    fp.mkdir(exist_ok=True)
+    shutil.copy2(src / "architecture.json", fp / "architecture.json")
+    desc = fp / "descriptions"
+    shutil.rmtree(desc, ignore_errors=True)
+    shutil.copytree(src / "descriptions", desc)
+    (fp / "recent-work.json").write_text('{ "tasks": [] }\n', encoding="utf-8")
+    subprocess.run([node, str(scripts / "build.mjs"), str(root), "--no-claude-md"],
+                   capture_output=True, text=True)
+    subprocess.run([node, str(scripts / "describe.mjs"), str(root)], capture_output=True, text=True)
+    auto = _fill_skill_descriptions(desc, root)
+    out = subprocess.run([node, str(scripts / "build.mjs"), str(root), "--artifact", "--no-claude-md"],
+                         capture_output=True, text=True)
+    if out.returncode != 0 or not (fp / "artifact.html").exists():
+        return "map: NOT redrawn (Floorplan build failed: " + (out.stdout + out.stderr).strip()[-300:] + ")"
+    shutil.copy2(fp / "artifact.html", root / MAP_FILE)
+    shutil.rmtree(src / "descriptions")
+    shutil.copytree(desc, src / "descriptions")
+    m = re.search(r"DESCRIPTIONS\s+files (\d+)/(\d+)", out.stdout)
+    have, total = (int(m.group(1)), int(m.group(2))) if m else (0, 0)
+    note = f"map: redrawn; {have}/{total} files described"
+    if auto:
+        note += f" ({auto} new skill description(s) taken from their SKILL.md)"
+    if total and have < total:
+        note += (f"; {total - have} new file(s) still need a description in "
+                 "docs/map-source/descriptions/")
+    return note
+
+
 # ----------------------------------------------------------------------------- check
 def check(root: Path, pmap: dict) -> list[str]:
     """Scan what git would publish: tracked files plus new files that are not ignored.
@@ -333,6 +426,8 @@ def weekly(repo: Path, cfg: dict, pmap: dict, dry_run: bool) -> int:
         if not status and not report["needs_port"]:
             print("RESULT: NO CHANGES")
             return 0
+        map_note = redraw_map(wt, pmap)
+        print(map_note)
         findings = check(wt, pmap)
         if findings:
             print("RESULT: BLOCKED — private content or leaks found; no pull request opened:")
@@ -347,7 +442,7 @@ def weekly(repo: Path, cfg: dict, pmap: dict, dry_run: bool) -> int:
             print("\n".join((tests.stdout + tests.stderr).strip().splitlines()[-25:]))
             return 3
         shutil.rmtree(wdir / ".venv", ignore_errors=True)
-        body = pr_body(report, tests.stdout.strip().splitlines()[-1:] or ["(no output)"])
+        body = pr_body(report, tests.stdout.strip().splitlines()[-1:] or ["(no output)"], map_note)
         if not status:
             print("RESULT: NEEDS PORT ONLY — sources of hand-curated files changed:")
             print(body)
@@ -372,14 +467,15 @@ def weekly(repo: Path, cfg: dict, pmap: dict, dry_run: bool) -> int:
         shutil.rmtree(work, ignore_errors=True)
 
 
-def pr_body(report: dict, tests: list[str]) -> str:
+def pr_body(report: dict, tests: list[str], map_note: str = "") -> str:
     lines = ["Automated weekly refresh of the kit's skills and Wilfred from the maintainer's originals.",
              "", "Do not merge without reading the diff.", "",
              f"- Updated files: {len(report['written'])}",
              f"- New files: {len(report['added'])}",
              f"- Removed files: {len(report['removed'])}",
              f"- Private-term and leak scan: clean",
-             f"- Wilfred tests: {tests[0]}"]
+             f"- Wilfred tests: {tests[0]}",
+             f"- Kit map (docs/map.html): {map_note.removeprefix('map: ') or 'not redrawn'}"]
     if report["needs_port"]:
         lines += ["", "Hand-curated files whose original changed (port the change by hand, then run "
                   "`python3 tools/sync.py record --only <path>`):"]
@@ -393,7 +489,7 @@ def pr_body(report: dict, tests: list[str]) -> str:
 # ----------------------------------------------------------------------------- main
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
-    ap.add_argument("command", choices=["build", "record", "check", "weekly"])
+    ap.add_argument("command", choices=["build", "record", "check", "weekly", "map"])
     ap.add_argument("--root", type=Path, default=ROOT)
     ap.add_argument("--only", nargs="*", help="record: limit to these public paths")
     ap.add_argument("--dry-run", action="store_true", help="weekly: do not push or open a PR")
@@ -416,6 +512,10 @@ def main() -> int:
             print("FINDING  " + f)
         print("RESULT: CLEAN" if not findings else f"RESULT: {len(findings)} FINDING(S)")
         return 1 if findings else 0
+    elif args.command == "map":
+        note = redraw_map(root, pmap)
+        print(note)
+        return 1 if "NOT redrawn" in note else 0
     else:
         return weekly(root, cfg, pmap, args.dry_run)
     return 0

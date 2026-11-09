@@ -1,0 +1,56 @@
+{
+  "files": {
+    "skills/annotated-system-map/agents/openai.yaml": {
+      "name": "Codex listing for system map",
+      "description": "Gives the Codex app the display name, short blurb and starter prompt for the system map skill."
+    },
+    "skills/annotated-system-map/references/example-explainer-content.py": {
+      "name": "Sample explainer content",
+      "description": "Shows a worked example of the content for a page explaining an imaginary notes-to-tasks app, to copy as a starting point."
+    },
+    "skills/annotated-system-map/references/explainer-content.md": {
+      "name": "Explainer page content rules",
+      "description": "Describes what the content for the single-page project explainer must contain and how it is laid out."
+    },
+    "skills/annotated-system-map/references/map-spec.md": {
+      "name": "System map format",
+      "description": "Describes the structure of the data file used to draw a hand-drawn style diagram of how a system works."
+    },
+    "skills/annotated-system-map/scripts/build_explainer.py": {
+      "name": "Explainer page builder",
+      "description": "Turns a content file into one self-contained web page with a menu, clickable flow diagram, and light and dark modes."
+    },
+    "skills/annotated-system-map/scripts/render_map.py": {
+      "name": "System map drawer",
+      "description": "Draws an annotated, hand-drawn style picture of a system from a data file, keeping the text exactly as written."
+    },
+    "skills/annotated-system-map/SKILL.md": {
+      "name": "System map and walkthrough",
+      "description": "Guides an AI assistant to study a finished project and produce plain-language pictures and a written walkthrough of how its parts work together."
+    },
+    "skills/buscar-antes-de-construir/ledger.md": {
+      "name": "Search-first decision log",
+      "description": "Keeps a one-line record of each decision to adopt, adapt, reference or skip an existing tool instead of building one."
+    },
+    "skills/buscar-antes-de-construir/scripts/scout.py": {
+      "name": "Existing tools finder",
+      "description": "Searches the user's installed skills and plugins for something that already does the job, without using the internet."
+    },
+    "skills/buscar-antes-de-construir/SKILL.md": {
+      "name": "Search before building",
+      "description": "Makes an AI assistant look for existing tools and skills before building a new workflow, routine or skill from scratch."
+    },
+    "skills/handoff-prompt/SKILL.md": {
+      "name": "Prompt for another session",
+      "description": "Guides an AI assistant to write a detailed, self-contained prompt so another AI session can continue or launch a piece of work."
+    },
+    "skills/local-first-mvp/SKILL.md": {
+      "name": "Local-model MVP planning",
+      "description": "Helps plan a first product version that runs on open-source models on the user's own machine to avoid paying for model usage while developing."
+    },
+    "skills/workflow-spec/SKILL.md": {
+      "name": "Multi-step flow spec",
+      "description": "Has an AI assistant write out every branch of a multi-step process such as booking, checkout or refund before it is built or changed."
+    }
+  }
+}

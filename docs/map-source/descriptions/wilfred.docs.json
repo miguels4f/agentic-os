@@ -1,0 +1,136 @@
+{
+  "files": {
+    "wilfred/.agents/skills/api-audit/SKILL.md": {
+      "name": "Server request security check",
+      "description": "Guides an AI assistant through reviewing a product's requests (REST, GraphQL) for the most common security weaknesses, such as users reading other people's records."
+    },
+    "wilfred/.agents/skills/crypto-audit/SKILL.md": {
+      "name": "Encryption check",
+      "description": "Guides an AI assistant through checking that encryption, password storage, signatures and secure connections are done correctly."
+    },
+    "wilfred/.agents/skills/dependency-audit/SKILL.md": {
+      "name": "Outside packages check",
+      "description": "Guides an AI assistant through checking the outside code a project depends on for known security problems and outdated versions."
+    },
+    "wilfred/.agents/skills/finding-triage/SKILL.md": {
+      "name": "Security finding triage",
+      "description": "Guides an AI assistant to decide what to do with one reported security problem: fix it, dismiss it as a false alarm, or accept the risk in writing."
+    },
+    "wilfred/.agents/skills/NOTICE-cybersecurity-skills.md": {
+      "name": "Credit for security skills",
+      "description": "Credits the original authors of the six security-audit skills copied into this folder and states the license they are shared under."
+    },
+    "wilfred/.agents/skills/owasp-audit/SKILL.md": {
+      "name": "Top-10 security check",
+      "description": "Guides an AI assistant through reviewing source code against the ten best-known web security risk categories (OWASP Top 10)."
+    },
+    "wilfred/.agents/skills/secrets-audit/SKILL.md": {
+      "name": "Leaked passwords check",
+      "description": "Guides an AI assistant to hunt for passwords and keys accidentally left in code or history, and to review how they are stored."
+    },
+    "wilfred/.github/workflows/ci.yml": {
+      "name": "Automatic checks on GitHub",
+      "description": "Runs Wilfred's automatic quality checks on GitHub whenever code is pushed or a change is proposed."
+    },
+    "wilfred/AGENTS.md": {
+      "name": "Wilfred AI instructions",
+      "description": "Tells AI coding assistants what Wilfred is, how its folders are laid out and which rules to follow when working inside it."
+    },
+    "wilfred/CLAUDE.md": {
+      "name": "Claude pointer to instructions",
+      "description": "Makes Claude Code read the Wilfred AI instructions file, so Claude and Codex follow the same rules."
+    },
+    "wilfred/CONTRIBUTING.md": {
+      "name": "How to contribute",
+      "description": "Explains how others can propose changes to Wilfred and that it is refreshed periodically from a private original."
+    },
+    "wilfred/docs/acceptance.md": {
+      "name": "Acceptance record",
+      "description": "Lists the must-have requirements Wilfred has to meet and whether each has been observed working, in the public copy."
+    },
+    "wilfred/docs/agent-foundry/architecture.md": {
+      "name": "Agent Foundry design",
+      "description": "Explains the boundaries and main design decisions of Agent Foundry, the part of Wilfred that designs and packages agent systems locally."
+    },
+    "wilfred/docs/agent-foundry/cli.md": {
+      "name": "Agent Foundry commands",
+      "description": "Shows the commands for running Agent Foundry and a step-by-step demo that can be reproduced."
+    },
+    "wilfred/docs/agent-foundry/evidence.md": {
+      "name": "Agent Foundry evidence",
+      "description": "Explains what proof Agent Foundry must show before something counts as done, and where the acceptance results are recorded."
+    },
+    "wilfred/docs/agent-foundry/extensions-frame.md": {
+      "name": "Planned extensions outline",
+      "description": "Frames a proposed extension: agents that use open-source models running on the user's own computer, plus search over documents and limited coordination."
+    },
+    "wilfred/docs/agent-foundry/README.md": {
+      "name": "Agent Foundry overview",
+      "description": "Introduces Agent Foundry, which turns a supported objective into a ready-to-run local agent system with recorded evidence."
+    },
+    "wilfred/docs/architecture.md": {
+      "name": "Wilfred design overview",
+      "description": "Describes how Wilfred's software-building and agent-building features fit together in one installed package and who is allowed to approve what."
+    },
+    "wilfred/docs/command-center.md": {
+      "name": "Status page guide",
+      "description": "Describes a read-only local page showing which projects exist, which Wilfred runs are active, finished or stuck, and what needs attention."
+    },
+    "wilfred/docs/demo.md": {
+      "name": "Demo walkthrough",
+      "description": "Gives the narration and command to run a demo of Wilfred that needs no accounts, with an option to use real AI calls."
+    },
+    "wilfred/docs/domain-model.md": {
+      "name": "Planned data design",
+      "description": "Sets out a design, not yet built, for how Wilfred should record projects, runs and events in the future."
+    },
+    "wilfred/docs/human-approvals-policy.md": {
+      "name": "Human sign-off policy",
+      "description": "Explains where Wilfred needs a person's signed approval and the owner-controlled switch that turns signing off for three lower-risk points."
+    },
+    "wilfred/docs/hyperwilfred-architecture.md": {
+      "name": "Early design (HyperWilfred)",
+      "description": "Keeps the original design of Wilfred's predecessor, HyperWilfred, as history; its claims are not current proof."
+    },
+    "wilfred/docs/hyperwilfred-continuous-improvement.md": {
+      "name": "Early improvement loops",
+      "description": "Keeps the old HyperWilfred plan for self-improvement loops and routines as history, not as current status."
+    },
+    "wilfred/docs/known-limitations.md": {
+      "name": "Known gaps",
+      "description": "Lists what Wilfred still cannot do or has not proven, treating unmet must-haves as unfinished work rather than future plans."
+    },
+    "wilfred/docs/limits-and-roadmap.md": {
+      "name": "Limits and next steps",
+      "description": "States today's limits, such as three supported kinds of task and Mac-only execution, and what is planned next."
+    },
+    "wilfred/docs/threat-model.md": {
+      "name": "Security risk map",
+      "description": "Maps who and what Wilfred trusts, where attacks could come in, and which sensitive actions need protection."
+    },
+    "wilfred/docs/verification.md": {
+      "name": "Verification results",
+      "description": "Records the test results and leak scans observed when this public copy of Wilfred was prepared on 2026-11-09."
+    },
+    "wilfred/PROVENANCE.md": {
+      "name": "Where Wilfred came from",
+      "description": "Explains how this public copy was extracted from the private repository, without its full history or unrelated project data."
+    },
+    "wilfred/pyproject.toml": {
+      "name": "Wilfred package settings",
+      "description": "Defines Wilfred as an installable Python package: its name, version, required Python version and the outside tools it needs."
+    },
+    "wilfred/README.md": {
+      "name": "Wilfred overview",
+      "description": "Introduces Wilfred, a local system that builds, improves and reviews software and designs agent systems, with hard quality checks."
+    },
+    "wilfred/skills/hyperwilfred-build/SKILL.md": {
+      "name": "Build with Wilfred",
+      "description": "Teaches an AI assistant how to use Wilfred to build or improve a software product from an objective."
+    },
+    "wilfred/skills/hyperwilfred-review/SKILL.md": {
+      "name": "Review with Wilfred",
+      "description": "Teaches an AI assistant how to use Wilfred to review the quality and security of an existing project or change."
+    }
+  }
+}

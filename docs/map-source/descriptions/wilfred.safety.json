@@ -1,0 +1,44 @@
+{
+  "files": {
+    "wilfred/src/hyperwilfred_core/approvals.py": {
+      "name": "Signed approvals",
+      "description": "Accepts a protected action only with a signed human decision tied to that exact request; expired, reused or unsigned ones are refused."
+    },
+    "wilfred/src/hyperwilfred_core/gate_declaration.py": {
+      "name": "Gate on/off switches",
+      "description": "Reads the human switches for the unreliable-test and pipeline checks exactly as committed at the start of the run."
+    },
+    "wilfred/src/hyperwilfred_core/gates.py": {
+      "name": "Human approval gates",
+      "description": "Pauses before irreversible actions until a human decides, and sorts changed files into sensitive categories."
+    },
+    "wilfred/src/hyperwilfred_core/guardrails.py": {
+      "name": "Safety floor",
+      "description": "Checks every change a worker made against the allowed scope, refuses to judge unreadable folders, and keeps run state out of commits."
+    },
+    "wilfred/src/hyperwilfred_core/hooks/__init__.py": {
+      "name": "Live protection files",
+      "description": "Package for the protection files that the safety installer sets up during a run."
+    },
+    "wilfred/src/hyperwilfred_core/hooks/pretooluse.py": {
+      "name": "Live file guard",
+      "description": "Before Claude touches a file, blocks it if it is outside the run's allowed area; blocks when unsure."
+    },
+    "wilfred/src/hyperwilfred_core/path_safety.py": {
+      "name": "Safe paths",
+      "description": "Rejects names and paths that try to escape their folder, including through shortcuts."
+    },
+    "wilfred/src/hyperwilfred_core/protected_paths.py": {
+      "name": "Sensitive file rules",
+      "description": "Recognises sensitive or irreversible files, such as passwords or deploy settings, and decides whether a human must approve changes."
+    },
+    "wilfred/src/hyperwilfred_core/severity_floor.py": {
+      "name": "Minimum severity rule",
+      "description": "Raises certain kinds of finding to at least major by fixed rule, not by a critic's opinion."
+    },
+    "wilfred/tools/wilfred-signer.py": {
+      "name": "Approval signing tool",
+      "description": "The tool the human uses to create a signing key and sign approvals, so protected steps cannot be approved by the system itself."
+    }
+  }
+}

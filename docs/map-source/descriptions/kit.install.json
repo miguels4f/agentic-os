@@ -1,0 +1,8 @@
+{
+  "files": {
+    "install.sh": {
+      "name": "Kit installer",
+      "description": "Installs the kit's skills and the local checks script for your user without overwriting anything that already exists; has a preview mode."
+    }
+  }
+}

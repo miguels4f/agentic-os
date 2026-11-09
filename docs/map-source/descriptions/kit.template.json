@@ -1,0 +1,28 @@
+{
+  "files": {
+    "template/project/.agents/skills/README.md": {
+      "name": "Project skills folder guide",
+      "description": "Explains that skills specific to one project go in this folder and that Codex and Claude Code both read them from here."
+    },
+    "template/project/AGENTS.md": {
+      "name": "Project instructions template",
+      "description": "Provides a fill-in-the-blanks instructions file for a project that every AI coding app reads and follows."
+    },
+    "template/project/CLAUDE.md": {
+      "name": "Claude pointer for a project",
+      "description": "Makes Claude Code read the project's shared instructions file so no second copy is needed."
+    },
+    "template/user/AGENTS.md": {
+      "name": "Personal instructions template",
+      "description": "Provides a starting file for your own preferences, shared by Codex, Claude Code and Cursor across all your projects."
+    },
+    "template/user/memory/example-test-db-port.md": {
+      "name": "Sample memory note",
+      "description": "Shows what a saved memory note looks like, using an example about which database port a project's tests expect."
+    },
+    "template/user/memory/MEMORY.md": {
+      "name": "Memory index",
+      "description": "Provides the starting list of saved memory notes, one line per note, that the AI assistants read at the start of a session."
+    }
+  }
+}

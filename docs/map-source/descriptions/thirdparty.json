@@ -1,0 +1,12 @@
+{
+  "files": {
+    "third-party/install.sh": {
+      "name": "Recommended tools installer",
+      "description": "Downloads each recommended outside tool straight from its authors, so none of their files are stored in this kit."
+    },
+    "third-party/README.md": {
+      "name": "Recommended tools list",
+      "description": "Lists the outside tools that work well with this kit and explains they are linked from their own sources, not copied here."
+    }
+  }
+}

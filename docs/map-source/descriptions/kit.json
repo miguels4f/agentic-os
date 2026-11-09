@@ -1,0 +1,12 @@
+{
+  "files": {
+    "README.md": {
+      "name": "Starter kit overview",
+      "description": "Introduces the agentic-os starter kit and what it gives you: a shared project setup, ready-made skills and a way to run checks locally."
+    },
+    "THIRD_PARTY_NOTICES.md": {
+      "name": "Credits to other projects",
+      "description": "Reproduces the credits and licenses for the parts of this kit adapted from other open-source projects."
+    }
+  }
+}

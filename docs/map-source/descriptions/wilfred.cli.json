@@ -1,0 +1,24 @@
+{
+  "files": {
+    "wilfred/examples/demo.py": {
+      "name": "Acceptance demo launcher",
+      "description": "Runs the acceptance demo from a source checkout; the same demo ships in the installed package."
+    },
+    "wilfred/src/hyperwilfred_core/__init__.py": {
+      "name": "Engine package",
+      "description": "Entry point of the Wilfred engine package that the command center reads."
+    },
+    "wilfred/src/hyperwilfred_core/cli.py": {
+      "name": "hw command",
+      "description": "The command-line tool for everything Wilfred does: planning, running, reviewing, Foundry projects and approvals."
+    },
+    "wilfred/src/hyperwilfred_core/codex.py": {
+      "name": "Codex workers",
+      "description": "Sets up Codex workers with their own safety hook, allowed scope and instructions, and splits fan-out into batches."
+    },
+    "wilfred/src/hyperwilfred_core/live_demo.py": {
+      "name": "Live demo check",
+      "description": "Checks that the demo a work slice promises can really be shown with the current data."
+    }
+  }
+}

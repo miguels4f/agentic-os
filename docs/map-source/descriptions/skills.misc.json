@@ -1,0 +1,12 @@
+{
+  "files": {
+    "skills/youtube-summarizer/agents/openai.yaml": {
+      "name": "Codex listing for video summaries",
+      "description": "Gives the Codex app the display name, short blurb and starter prompt for the YouTube summary skill."
+    },
+    "skills/youtube-summarizer/SKILL.md": {
+      "name": "YouTube video summary",
+      "description": "Guides an AI assistant to fetch a YouTube video's transcript and write a summary with key points, action items and timestamps."
+    }
+  }
+}

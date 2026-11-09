@@ -1,0 +1,128 @@
+{
+  "files": {
+    "wilfred/src/hyperwilfred_core/compiler.py": {
+      "name": "Safety rules installer",
+      "description": "Turns a run's allowed-files scope into live protection rules, installs them for the run and restores the previous settings afterwards."
+    },
+    "wilfred/src/hyperwilfred_core/cost.py": {
+      "name": "Run cost tracking",
+      "description": "Reports how long each run and step took and, once recorded, how many AI tokens it used; unknown cost is shown as unknown, never zero."
+    },
+    "wilfred/src/hyperwilfred_core/durable.py": {
+      "name": "Crash-proof build waves",
+      "description": "Runs build waves in order, and when a durable-workflow database is configured, keeps going after a crash instead of starting over."
+    },
+    "wilfred/src/hyperwilfred_core/engine.py": {
+      "name": "Main work engine",
+      "description": "Plans a run, hands out the next small work packet, and accepts or rejects each result against the safety rules, rolling back rejected work."
+    },
+    "wilfred/src/hyperwilfred_core/escalation.py": {
+      "name": "Escalations",
+      "description": "Records a problem that needs the owner on the run's timeline and in a founder-facing notifications file, and lists them newest first."
+    },
+    "wilfred/src/hyperwilfred_core/known_failures.py": {
+      "name": "Declared test failures",
+      "description": "Lets a human declare narrow, environment-only test failures so the test check warns instead of blocking, using the list as committed."
+    },
+    "wilfred/src/hyperwilfred_core/learning.py": {
+      "name": "Lessons from past runs",
+      "description": "Mines past runs for improvement proposals that a human must review; nothing is ever applied automatically."
+    },
+    "wilfred/src/hyperwilfred_core/observability.py": {
+      "name": "Run health monitor",
+      "description": "Reads what runs left on disk, flags warning signs, raises serious ones to the owner and builds a plain dashboard."
+    },
+    "wilfred/src/hyperwilfred_core/pipeline.py": {
+      "name": "Build step order",
+      "description": "Defines the ordered steps for build, improve and review jobs and loads each step's written instructions."
+    },
+    "wilfred/src/hyperwilfred_core/plan_lint.py": {
+      "name": "Work-split checker",
+      "description": "Checks that a plan cuts work by responsibility rather than by file count, and saves the findings next to the plan."
+    },
+    "wilfred/src/hyperwilfred_core/regression.py": {
+      "name": "Regression guard",
+      "description": "Records a green test baseline before changes and flags anything that was passing and now fails, including changed tests."
+    },
+    "wilfred/src/hyperwilfred_core/reproducibility.py": {
+      "name": "Rebuild check",
+      "description": "Regenerates generated files in a clean copy of the code and confirms they match byte for byte."
+    },
+    "wilfred/src/hyperwilfred_core/resume.py": {
+      "name": "Resume after crash",
+      "description": "Checks which step outputs exist on disk after an interruption and moves the run back to the right step to continue."
+    },
+    "wilfred/src/hyperwilfred_core/run_store.py": {
+      "name": "Run history log",
+      "description": "Saves each run's timeline and evidence to disk safely so a run can be inspected or resumed later."
+    },
+    "wilfred/src/hyperwilfred_core/schemas.py": {
+      "name": "Shared data definitions",
+      "description": "Defines the fixed shapes of runs, steps, work packets, risk levels and results that every other part relies on."
+    },
+    "wilfred/src/hyperwilfred_core/steps/improve/01_comprehend.md": {
+      "name": "Improve: understand",
+      "description": "Instructions for the first improve step: read the existing product and understand what it does before touching it."
+    },
+    "wilfred/src/hyperwilfred_core/steps/improve/02_locate.md": {
+      "name": "Improve: find the spot",
+      "description": "Instructions for finding exactly which parts of the code the requested improvement should change."
+    },
+    "wilfred/src/hyperwilfred_core/steps/improve/03_implement.md": {
+      "name": "Improve: make the change",
+      "description": "Instructions for making the improvement in small, in-scope edits."
+    },
+    "wilfred/src/hyperwilfred_core/steps/improve/04_regression.md": {
+      "name": "Improve: check nothing broke",
+      "description": "Instructions for proving the change did not break anything that worked before."
+    },
+    "wilfred/src/hyperwilfred_core/steps/improve/05_verify.md": {
+      "name": "Improve: final check",
+      "description": "Instructions for the last verification of an improvement before it is accepted."
+    },
+    "wilfred/src/hyperwilfred_core/steps/quality/00_loop.md": {
+      "name": "Quality loop overview",
+      "description": "Instructions that run the repeated score, critique and patch cycle until the work is good enough."
+    },
+    "wilfred/src/hyperwilfred_core/steps/quality/01_subjective.md": {
+      "name": "Quality: score the work",
+      "description": "Instructions for giving the work a 0 to 5 quality score and listing what holds it back."
+    },
+    "wilfred/src/hyperwilfred_core/steps/quality/02_critique.md": {
+      "name": "Quality: expert critiques",
+      "description": "Instructions for independent critics to review the work from different angles and report problems."
+    },
+    "wilfred/src/hyperwilfred_core/steps/quality/02b_adversarial.md": {
+      "name": "Quality: hostile review",
+      "description": "Instructions for a deliberately sceptical reviewer who tries to find what the others missed."
+    },
+    "wilfred/src/hyperwilfred_core/steps/quality/03_patch.md": {
+      "name": "Quality: targeted fixes",
+      "description": "Instructions for fixing only the problems the critics found, without rewriting everything."
+    },
+    "wilfred/src/hyperwilfred_core/steps/quality/state-claims-methodology.md": {
+      "name": "Checking claims method",
+      "description": "Explains how to verify statements about state, such as tests passing or work merged, before reporting them."
+    },
+    "wilfred/src/hyperwilfred_core/steps/review/01_comprehend.md": {
+      "name": "Review: understand",
+      "description": "Instructions for the first review step: read the target and understand what it is meant to do."
+    },
+    "wilfred/src/hyperwilfred_core/steps/review/02_critique.md": {
+      "name": "Review: critique",
+      "description": "Instructions for the review panel to look for problems in the target without changing it."
+    },
+    "wilfred/src/hyperwilfred_core/steps/review/03_report.md": {
+      "name": "Review: write report",
+      "description": "Instructions for turning the critics' findings into one clear review report."
+    },
+    "wilfred/src/hyperwilfred_core/traceability.py": {
+      "name": "Requirement tracing",
+      "description": "Checks that every requirement from the shaping notes shows up in the plan and contract, and lists any that were dropped."
+    },
+    "wilfred/src/hyperwilfred_core/wave_planner.py": {
+      "name": "Parallel wave planner",
+      "description": "Groups independent slices of work into waves that can run side by side without touching the same files."
+    }
+  }
+}

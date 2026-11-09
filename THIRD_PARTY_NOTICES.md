@@ -68,3 +68,16 @@ their notice in `wilfred/.agents/skills/NOTICE-cybersecurity-skills.md`.
 Wilfred depends on Pydantic and cryptography at runtime, and on uv, Hatch, pytest, Ruff,
 mypy and build for development. They are installed from their own distributions (see
 `wilfred/pyproject.toml` and `wilfred/uv.lock`) under their own licenses; none is vendored.
+
+## The kit map (`docs/map.html`)
+
+`docs/map.html` was generated with Floorplan (<https://github.com/haydenschmitty/floorplan>,
+MIT License, Copyright (c) 2026 Hayden Smith), and the file embeds its viewer code. It also
+embeds, unmodified:
+
+- elkjs, the layout engine (<https://github.com/kieler/elkjs>), under the Eclipse Public License
+  2.0 (<https://www.eclipse.org/legal/epl-2.0/>);
+- the Inter font (<https://github.com/rsms/inter>, Copyright 2016 The Inter Project Authors) and
+  the JetBrains Mono font (<https://github.com/JetBrains/JetBrainsMono>, Copyright 2020 The
+  JetBrains Mono Project Authors), both under the SIL Open Font License 1.1
+  (<https://openfontlicense.org>).

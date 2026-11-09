@@ -16,6 +16,23 @@ Everything here is plain files: Markdown instructions, a few shell and Python sc
 runs in the background, nothing phones home, and nothing needs a paid account beyond the agent
 app you already use.
 
+## See the map first
+
+[`docs/map.html`](docs/map.html) is an interactive map of the whole kit: every part, every file
+with a one-line plain-English description, how the pieces connect, and three guided walkthroughs
+(setting up a new computer, how the weekly update works, how Wilfred builds an agent). A
+one-minute "Start here" tour runs the first time you open it.
+
+GitHub shows HTML files as code, so open it from your copy instead. It is a single file and works
+offline:
+
+```bash
+open docs/map.html        # macOS; on Linux use xdg-open, on Windows double-click it
+```
+
+The map was drawn with [Floorplan](https://github.com/haydenschmitty/floorplan). Its "Ask" box
+needs that plugin and an agent app; everything else works in any browser.
+
 ## What is in the box
 
 | Folder | What it is | Do you need it? |
@@ -25,6 +42,7 @@ app you already use.
 | [`bin/local-ci`](bin/local-ci) | Runs your project's checks (tests, lint, type check, leak scan) on your machine before you push | Optional |
 | [`third-party/`](third-party/) | Links to excellent tools by other people, and a script that installs them from their own source | Optional |
 | [`wilfred/`](wilfred/) | The Wilfred engine (Python, macOS) | Optional, for bigger builds |
+| [`docs/map.html`](docs/map.html) | Interactive map of everything in this kit | Open it first |
 | [`docs/guide.md`](docs/guide.md) | How to use all of this with Codex, Claude Code and Cursor | Read once |
 | [`tools/`](tools/) | How the maintainer keeps this kit up to date (you can ignore it) | No |
 

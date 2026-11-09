@@ -244,6 +244,8 @@ def check(root: Path, pmap: dict) -> list[str]:
         for name in filenames:
             full = Path(dirpath) / name
             rel = full.relative_to(root).as_posix()
+            if rel == ".git":
+                continue  # a worktree's .git pointer file: local path, never published
             if any(fnmatch.fnmatch(name, g) for g in FORBIDDEN_NAMES) and \
                     not name.endswith(".example") and name != ".env.example":
                 findings.append(f"forbidden file name: {rel}")

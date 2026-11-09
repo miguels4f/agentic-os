@@ -239,6 +239,31 @@ def write_state(path: Path, state: dict) -> None:
 
 # ----------------------------------------------------------------------------- check
 def check(root: Path, pmap: dict) -> list[str]:
+    """Scan what git would publish: tracked files plus new files that are not ignored.
+
+    Local-only files that git ignores (a floorplan map, CLAUDE.local.md, caches) are skipped,
+    because they never reach the repository. Outside a git checkout the whole folder is scanned.
+    """
+    if not (root / ".git").exists():
+        return _check_tree(root, pmap)
+    listing = subprocess.run(["git", "-C", str(root), "ls-files", "-z", "--cached", "--others",
+                              "--exclude-standard"], check=True, capture_output=True).stdout
+    with tempfile.TemporaryDirectory() as tmp:
+        dest_root = Path(tmp)
+        for raw in listing.split(b"\0"):
+            if not raw:
+                continue
+            rel = raw.decode("utf-8", "surrogateescape")
+            src = root / rel
+            if not os.path.lexists(src):
+                continue
+            dest = dest_root / rel
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(src, dest, follow_symlinks=False)
+        return _check_tree(dest_root, pmap)
+
+
+def _check_tree(root: Path, pmap: dict) -> list[str]:
     findings: list[str] = []
     allow = pmap.get("allow", {})
     for dirpath, dirnames, filenames in os.walk(root):

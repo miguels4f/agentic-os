@@ -119,7 +119,11 @@ def collect_sources(cfg: dict, pmap: dict, scratch: Path) -> list[Source]:
     repo = Path(src["wilfred"]).expanduser()
     export = scratch / "wilfred-export"
     export.mkdir(parents=True, exist_ok=True)
-    archive = subprocess.run(["git", "-C", str(repo), "archive", src.get("wilfred_ref", "HEAD")],
+    ref = src.get("wilfred_ref", "HEAD")
+    if ref.startswith("origin/"):
+        # Read the published branch, not a possibly stale local checkout.
+        subprocess.run(["git", "-C", str(repo), "fetch", "-q", "origin"], check=True)
+    archive = subprocess.run(["git", "-C", str(repo), "archive", ref],
                              check=True, capture_output=True).stdout
     subprocess.run(["tar", "-x", "-C", str(export)], input=archive, check=True)
     for rel, full, link in _walk(export, w["exclude"]):

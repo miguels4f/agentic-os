@@ -3,7 +3,7 @@
   "sources": {
     "skills": "~/.agents/skills",
     "wilfred": "~/code/wilfred",
-    "wilfred_ref": "main",
+    "wilfred_ref": "origin/main",
     "extra_files": {
       "bin/local-ci": "~/.local/bin/local-ci"
     }

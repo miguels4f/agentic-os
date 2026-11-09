@@ -1,0 +1,4 @@
+interface:
+  display_name: "Annotated System Map"
+  short_description: "Explain system flows, contracts, and handoffs visually"
+  default_prompt: "Use $annotated-system-map to inspect this project and create both a plain-language overview and a detailed architecture map with contracts, restrictions, and handoffs."

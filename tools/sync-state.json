@@ -1,0 +1,1247 @@
+{
+ "bin/local-ci": {
+  "origin": "extra:local-ci",
+  "source_sha": "da4b56ec493de7e1f87b98871ee8f19941372c97b58d00c39451cbc69a8d7400",
+  "mode": "curated"
+ },
+ "skills/accessibility-audit/SKILL.md": {
+  "origin": "skills:accessibility-audit/SKILL.md",
+  "source_sha": "46aafb46bae248d0bafcb274c263f56d76bab21a4a43c9ef32ff83749e86aba0",
+  "mode": "curated"
+ },
+ "skills/agents-maintainer/SKILL.md": {
+  "origin": "skills:agents-maintainer/SKILL.md",
+  "source_sha": "edbea9cd23b0278de8be0f3d0dee3a92f7b09fe0fa750d8d859f402e9d8c51ae",
+  "mode": "curated"
+ },
+ "skills/agents-maintainer/agents/openai.yaml": {
+  "origin": "skills:agents-maintainer/agents/openai.yaml",
+  "source_sha": "3c78bd3d646dbe8ee349e1428e331b1ce816bbf2389910bd55cf4d9f8fd05037",
+  "mode": "auto"
+ },
+ "skills/agents-maintainer/references/automation-prompt-template.md": {
+  "origin": "skills:agents-maintainer/references/automation-prompt-template.md",
+  "source_sha": "3dc08ff500de26c419438ad90c57044d6980bbd3ce4c15341cf205566ecba6cc",
+  "mode": "curated"
+ },
+ "skills/annotated-system-map/SKILL.md": {
+  "origin": "skills:annotated-system-map/SKILL.md",
+  "source_sha": "e413d103dd8ba8e4161d1ce2593b43c884cbec5f45490ccf904ce1414f7122e1",
+  "mode": "curated"
+ },
+ "skills/annotated-system-map/agents/openai.yaml": {
+  "origin": "skills:annotated-system-map/agents/openai.yaml",
+  "source_sha": "2eee1d88bd4803551fc56cb3c6265581f063fa87477d8420237ef0367ae1be95",
+  "mode": "auto"
+ },
+ "skills/annotated-system-map/references/example-explainer-content.py": {
+  "origin": "skills:annotated-system-map/references/example-explainer-content.py",
+  "source_sha": "b3c17fa94315ee0ddfe4b98a497c7fab99d17b92f3d94446701f7de665c4733e",
+  "mode": "curated"
+ },
+ "skills/annotated-system-map/references/explainer-content.md": {
+  "origin": "skills:annotated-system-map/references/explainer-content.md",
+  "source_sha": "71ce9c7cddbf8fe2f0b9d1bd57145fcf4f608c832d5eabf181019c560c323105",
+  "mode": "curated"
+ },
+ "skills/annotated-system-map/references/map-spec.md": {
+  "origin": "skills:annotated-system-map/references/map-spec.md",
+  "source_sha": "c69cf9dea59cc6ddfbe01d607b2917cd52bed4f9f3e9ae3268ed7962957e4808",
+  "mode": "auto"
+ },
+ "skills/annotated-system-map/scripts/build_explainer.py": {
+  "origin": "skills:annotated-system-map/scripts/build_explainer.py",
+  "source_sha": "18aed29e11e019418c06f83f97a48d58e4044c834038692d7417af5d357d5fc3",
+  "mode": "curated"
+ },
+ "skills/annotated-system-map/scripts/render_map.py": {
+  "origin": "skills:annotated-system-map/scripts/render_map.py",
+  "source_sha": "4b239b2a40168cf3456d471216251d78051e41e24a5fad0ef31f48e69ba6f526",
+  "mode": "auto"
+ },
+ "skills/automation-governance/SKILL.md": {
+  "origin": "skills:automation-governance/SKILL.md",
+  "source_sha": "b61abc3900dae9fa09621195d6cf6f88437aecd8a74adf6e7dd30f9ee5d3f2c3",
+  "mode": "curated"
+ },
+ "skills/browser-test-hygiene/SKILL.md": {
+  "origin": "skills:browser-test-hygiene/SKILL.md",
+  "source_sha": "9d8dfe9be724c5bdf789d731ce869c41968f5973cd364ef10f4968944ffa79dd",
+  "mode": "curated"
+ },
+ "skills/buscar-antes-de-construir/SKILL.md": {
+  "origin": "skills:buscar-antes-de-construir/SKILL.md",
+  "source_sha": "431661cd89fe24299c48da04cf4d440437164cbdef32f2d90b4ef2d426acdbed",
+  "mode": "curated"
+ },
+ "skills/buscar-antes-de-construir/ledger.md": {
+  "origin": "skills:buscar-antes-de-construir/ledger.md",
+  "source_sha": "24d169d46a3012f4ac70d28959a4bea176730a14d09203b7cece3a514900a44d",
+  "mode": "curated"
+ },
+ "skills/buscar-antes-de-construir/scripts/scout.py": {
+  "origin": "skills:buscar-antes-de-construir/scripts/scout.py",
+  "source_sha": "02b3c8f56f4be9c9fcbe811fc740c0fba8526e3b9cb36fc5f4787c31d8f25f5f",
+  "mode": "curated"
+ },
+ "skills/handoff-prompt/SKILL.md": {
+  "origin": "skills:handoff-prompt/SKILL.md",
+  "source_sha": "e2456f5aff4058cface2eb63e2002f19ccf73e86510c5800d5fd0b117be09103",
+  "mode": "curated"
+ },
+ "skills/local-ci/SKILL.md": {
+  "origin": "skills:local-ci/SKILL.md",
+  "source_sha": "de427bd9f1d6a9a0a0518550f6894c7542e20529aff0fb2555c5e4c0560deb58",
+  "mode": "curated"
+ },
+ "skills/local-ci/ci_plan.py": {
+  "origin": "skills:local-ci/ci_plan.py",
+  "source_sha": "e305ac248d1bc1b712938eef5a26e155d9da0a74feffc4bc41003d7d5dcb7c04",
+  "mode": "auto"
+ },
+ "skills/local-first-mvp/SKILL.md": {
+  "origin": "skills:local-first-mvp/SKILL.md",
+  "source_sha": "6466162c1fc5fac0ae2e877e6e986e867d1c6c668d9ccb9a681cbbf242360e62",
+  "mode": "curated"
+ },
+ "skills/money-flow-integrity/SKILL.md": {
+  "origin": "skills:money-flow-integrity/SKILL.md",
+  "source_sha": "613a4fdc1f2c190e7c2e5f95d158b1f5bc615765a375e7e9d78be1fe7b5ea3c6",
+  "mode": "curated"
+ },
+ "skills/persona-walkthrough/SKILL.md": {
+  "origin": "skills:persona-walkthrough/SKILL.md",
+  "source_sha": "1cda30536511c28ed37e3f593f0a6b7b72d0cddf9fb394aa558beeae7f499dad",
+  "mode": "curated"
+ },
+ "skills/secret-leak-response/SKILL.md": {
+  "origin": "skills:secret-leak-response/SKILL.md",
+  "source_sha": "ffc9ced9906193960c510569d1d21a5b70eafee67267924f1be51af405a8420c",
+  "mode": "curated"
+ },
+ "skills/slopbuster-audit/SKILL.md": {
+  "origin": "skills:slopbuster-audit/SKILL.md",
+  "source_sha": "9557675509de4713581e32f499c80ee415429c4895a48981aff8ade880182655",
+  "mode": "curated"
+ },
+ "skills/slopbuster-audit/references/frontend-review.md": {
+  "origin": "skills:slopbuster-audit/references/frontend-review.md",
+  "source_sha": "8ffbd5bea1a3db80e2266034fb5ffa7d4c4f8f3a0521fc9b486acbee7d893d91",
+  "mode": "auto"
+ },
+ "skills/slopbuster-audit/references/output-contract.md": {
+  "origin": "skills:slopbuster-audit/references/output-contract.md",
+  "source_sha": "eab0b74ffcc8395be33f2a2757ade9e41525fb6051afc8f0c4eab42e1b77ad2a",
+  "mode": "auto"
+ },
+ "skills/slopbuster-audit/references/python-review.md": {
+  "origin": "skills:slopbuster-audit/references/python-review.md",
+  "source_sha": "ba0e87b38439c11ce6118c0a18e5e8974d62d4907b8a40225b33242bf88a2721",
+  "mode": "auto"
+ },
+ "skills/slopbuster-audit/references/repo-audit.md": {
+  "origin": "skills:slopbuster-audit/references/repo-audit.md",
+  "source_sha": "50e44a76019f0e10720b105aa44f94abb35f970c22deb25179caf46de812d3ed",
+  "mode": "auto"
+ },
+ "skills/slopbuster-audit/references/rust-review.md": {
+  "origin": "skills:slopbuster-audit/references/rust-review.md",
+  "source_sha": "77218c6bbcc1d82cc245acfa70107165c3a6217de21969759d0564ee8064804d",
+  "mode": "auto"
+ },
+ "skills/slopbuster-audit/references/simulation.md": {
+  "origin": "skills:slopbuster-audit/references/simulation.md",
+  "source_sha": "4989aa4e881077dd9701aa4cb00c0373a1c702413a420fb042de96a21978e3f6",
+  "mode": "auto"
+ },
+ "skills/ui-finish-gate/SKILL.md": {
+  "origin": "skills:ui-finish-gate/SKILL.md",
+  "source_sha": "8c5c6de9cfe5ce2bad454c7345af0c0a595ba085221bdd05e44b1ef64d6ae8d5",
+  "mode": "curated"
+ },
+ "skills/workflow-spec/SKILL.md": {
+  "origin": "skills:workflow-spec/SKILL.md",
+  "source_sha": "3f500f682cbea8f6f1f3b8f5eb32060b0930d70c96bf0d9077e8b853a908315d",
+  "mode": "curated"
+ },
+ "skills/youtube-summarizer/SKILL.md": {
+  "origin": "skills:youtube-summarizer/SKILL.md",
+  "source_sha": "e453d9d78f493b7a4711595626dbeb41abec4261d7caa44f9eabab7bf4086615",
+  "mode": "curated"
+ },
+ "skills/youtube-summarizer/agents/openai.yaml": {
+  "origin": "skills:youtube-summarizer/agents/openai.yaml",
+  "source_sha": "476e03f5469189e3e88d953521987dda3f98a85574f46ff9e0c90289d55b5438",
+  "mode": "curated"
+ },
+ "wilfred/.agents/skills/NOTICE-cybersecurity-skills.md": {
+  "origin": "wilfred:.agents/skills/NOTICE-cybersecurity-skills.md",
+  "source_sha": "a518b4bc75300059dd8d7cd4f59e741531bdd186f907c210c3dda22b404cbc09",
+  "mode": "auto"
+ },
+ "wilfred/.agents/skills/api-audit/SKILL.md": {
+  "origin": "wilfred:.agents/skills/api-audit/SKILL.md",
+  "source_sha": "eb2b68fd76c6c7d53f510134e0188f12ff4e5af85f71069e86e4fecf330484ff",
+  "mode": "auto"
+ },
+ "wilfred/.agents/skills/crypto-audit/SKILL.md": {
+  "origin": "wilfred:.agents/skills/crypto-audit/SKILL.md",
+  "source_sha": "bfb68044e4e3d36cd83e7044438927ab9b9fbd05b635a73300c3a02fc7adc524",
+  "mode": "auto"
+ },
+ "wilfred/.agents/skills/dependency-audit/SKILL.md": {
+  "origin": "wilfred:.agents/skills/dependency-audit/SKILL.md",
+  "source_sha": "2c8c23feba0f170cc5cd50002eecedfe7b429a5f19df8e36c6617ea5f4e34408",
+  "mode": "auto"
+ },
+ "wilfred/.agents/skills/finding-triage/SKILL.md": {
+  "origin": "wilfred:.agents/skills/finding-triage/SKILL.md",
+  "source_sha": "91252dc77cf65851953b49d450929f76aa66a50863bd7bea4883ef3ae3d15bcd",
+  "mode": "auto"
+ },
+ "wilfred/.agents/skills/owasp-audit/SKILL.md": {
+  "origin": "wilfred:.agents/skills/owasp-audit/SKILL.md",
+  "source_sha": "0acac3a6ee263306a22e0e7e63011ffc717a60631f2354b29e7610091620daeb",
+  "mode": "auto"
+ },
+ "wilfred/.agents/skills/secrets-audit/SKILL.md": {
+  "origin": "wilfred:.agents/skills/secrets-audit/SKILL.md",
+  "source_sha": "c2f2a6103c319bb43bcdcca6561d353895ddc626143808018ecde77dc5fd7a3a",
+  "mode": "auto"
+ },
+ "wilfred/.claude/skills": {
+  "origin": "wilfred:.claude/skills",
+  "source_sha": "3c74c93317f015d16370349a76529b6f8332c808bdd589e7640eeba6a1b1b874",
+  "mode": "link"
+ },
+ "wilfred/.github/workflows/ci.yml": {
+  "origin": "wilfred:.github/workflows/ci.yml",
+  "source_sha": "b203847a52549854782e73cb54386f6d3a6f37de5866239a144072a729fc0cf4",
+  "mode": "auto"
+ },
+ "wilfred/.gitignore": {
+  "origin": "wilfred:.gitignore",
+  "source_sha": "6cb77c0a8113b2803414e807ff6391fe48ec54afd22083a07668e98b2c24fe45",
+  "mode": "auto"
+ },
+ "wilfred/AGENTS.md": {
+  "origin": "wilfred:AGENTS.md",
+  "source_sha": "8e1f1d674d7b7de10adb0e64e7f8ff52351d5a86f876ae2a48bb5d01706be203",
+  "mode": "curated"
+ },
+ "wilfred/CLAUDE.md": {
+  "origin": "wilfred:CLAUDE.md",
+  "source_sha": "336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49",
+  "mode": "auto"
+ },
+ "wilfred/CONTRIBUTING.md": {
+  "origin": "wilfred:CONTRIBUTING.md",
+  "source_sha": "fc904d23fda97f54617d77a1e386996489b506fe4ab5496958e6841015bb79d0",
+  "mode": "curated"
+ },
+ "wilfred/PROVENANCE.md": {
+  "origin": "wilfred:PROVENANCE.md",
+  "source_sha": "35237e12a5e9413d074013ebc20f4ea9ce929269f239dbe14b17f8dab9cd277c",
+  "mode": "curated"
+ },
+ "wilfred/README.md": {
+  "origin": "wilfred:README.md",
+  "source_sha": "4225bfbb820f36c0e22c37d17b6e282b9fe0af9d46eec7a1310395542748c409",
+  "mode": "curated"
+ },
+ "wilfred/conftest.py": {
+  "origin": "wilfred:conftest.py",
+  "source_sha": "0688b59a712b51fc0b58b679a0b11b2ab744d2a8356f327598157125e9a38c25",
+  "mode": "auto"
+ },
+ "wilfred/docs/agent-foundry/README.md": {
+  "origin": "wilfred:docs/agent-foundry/README.md",
+  "source_sha": "396aa822d8265aba2597fe51127632cf672dbe9c2d5dac6c030700d294a2db77",
+  "mode": "auto"
+ },
+ "wilfred/docs/agent-foundry/architecture.md": {
+  "origin": "wilfred:docs/agent-foundry/architecture.md",
+  "source_sha": "6db3e1a1d0084deba0a73f34b03d88be4b71e740e80f212f86037adf4ce65630",
+  "mode": "auto"
+ },
+ "wilfred/docs/agent-foundry/cli.md": {
+  "origin": "wilfred:docs/agent-foundry/cli.md",
+  "source_sha": "5ed282f1ad1071916d909a2b58916ec3d060cda98ae19fc280ca3604f61b6c9d",
+  "mode": "auto"
+ },
+ "wilfred/docs/agent-foundry/evidence.md": {
+  "origin": "wilfred:docs/agent-foundry/evidence.md",
+  "source_sha": "44be27aad41bc6e37047fea5488b8cf9984848c31f43691b0aec5ee3780057df",
+  "mode": "auto"
+ },
+ "wilfred/docs/agent-foundry/extensions-frame.md": {
+  "origin": "wilfred:docs/agent-foundry/extensions-frame.md",
+  "source_sha": "7fd4e4a85083d4e9abf24872d8e47085a49ea7e02d5965beec3166b1001d4261",
+  "mode": "auto"
+ },
+ "wilfred/docs/architecture.md": {
+  "origin": "wilfred:docs/architecture.md",
+  "source_sha": "b9b75eb4a23bb21abce391ec5d54fd4af34d12fa39565c7a09a6f19436f27541",
+  "mode": "auto"
+ },
+ "wilfred/docs/command-center.md": {
+  "origin": "wilfred:docs/command-center.md",
+  "source_sha": "8c8bc1c7bcd82e5a0b3e540cd28a052cb9aba18b66e31f8c1d70edfc89b37d98",
+  "mode": "auto"
+ },
+ "wilfred/docs/demo.md": {
+  "origin": "wilfred:docs/demo.md",
+  "source_sha": "ad491c0eadbb708e300841f310b57cf853b34f8da409485162f15fe5bf821863",
+  "mode": "auto"
+ },
+ "wilfred/docs/domain-model.md": {
+  "origin": "wilfred:docs/domain-model.md",
+  "source_sha": "bd1e559b63e9629257beb3c2f6d349a2ea5164dbef3b3f2650bcc963f07bf984",
+  "mode": "auto"
+ },
+ "wilfred/docs/human-approvals-policy.md": {
+  "origin": "wilfred:docs/human-approvals-policy.md",
+  "source_sha": "17da6ae3f2db79bca55a30f7cb96a91771b47ba3e36bb5032e73faaa50b24775",
+  "mode": "auto"
+ },
+ "wilfred/docs/hyperwilfred-architecture.md": {
+  "origin": "wilfred:docs/hyperwilfred-architecture.md",
+  "source_sha": "7622a6ee1eb22e3231379784fd80298ad4f60996d8f383414249e91f796bfafb",
+  "mode": "auto"
+ },
+ "wilfred/docs/hyperwilfred-continuous-improvement.md": {
+  "origin": "wilfred:docs/hyperwilfred-continuous-improvement.md",
+  "source_sha": "5271c88a06f4c57e412e186796b82183c6ae1de75b852b0fc528d8b255ff56cf",
+  "mode": "auto"
+ },
+ "wilfred/docs/known-limitations.md": {
+  "origin": "wilfred:docs/known-limitations.md",
+  "source_sha": "5197f6fa81165a0373a110590f87cc1309394ace5c136d68b38fa13ce704b5b8",
+  "mode": "auto"
+ },
+ "wilfred/docs/limits-and-roadmap.md": {
+  "origin": "wilfred:docs/limits-and-roadmap.md",
+  "source_sha": "7755eb74d8edf3ee416e7208d37a1f7cf07bc3decef67b0b91d5acfd3f62d0a6",
+  "mode": "auto"
+ },
+ "wilfred/docs/threat-model.md": {
+  "origin": "wilfred:docs/threat-model.md",
+  "source_sha": "84f0436fdd7dede27d4f4bd6777bbf2411e6c87a06d9ff751d1d8b6d786afbd9",
+  "mode": "curated"
+ },
+ "wilfred/examples/demo.py": {
+  "origin": "wilfred:examples/demo.py",
+  "source_sha": "fce7d04d3773eb45f08c1b15c0581f4584cbe8031807dce90038644ff6cce5f7",
+  "mode": "auto"
+ },
+ "wilfred/pyproject.toml": {
+  "origin": "wilfred:pyproject.toml",
+  "source_sha": "e696e2665a650c1e55294615e2741aca02c971a1951c72b4f04983a2d54aad68",
+  "mode": "auto"
+ },
+ "wilfred/skills/hyperwilfred-build/SKILL.md": {
+  "origin": "wilfred:skills/hyperwilfred-build/SKILL.md",
+  "source_sha": "afe454a1779f63e4596229558e1608d2c75c764db07bf556ab680ac368df6015",
+  "mode": "auto"
+ },
+ "wilfred/skills/hyperwilfred-review/SKILL.md": {
+  "origin": "wilfred:skills/hyperwilfred-review/SKILL.md",
+  "source_sha": "e0a24e3f108f52c11c0509876d8b4edaa6cb8accde60cbb367058d085e195627",
+  "mode": "curated"
+ },
+ "wilfred/src/hyperwilfred_core/__init__.py": {
+  "origin": "wilfred:src/hyperwilfred_core/__init__.py",
+  "source_sha": "f2ce0b0cd0458249c98e537c3d2c72695bc10a044bd5403a578c4924356c60e6",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/approvals.py": {
+  "origin": "wilfred:src/hyperwilfred_core/approvals.py",
+  "source_sha": "7248773c66c2fef4d05903ff8049fcfb7869051e06484644c6fd27c561a8176d",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/cli.py": {
+  "origin": "wilfred:src/hyperwilfred_core/cli.py",
+  "source_sha": "d9c55f966f1fe996e1ae4df0320e16a51e92a778e10fcff96a91f20b82c6753f",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/codex.py": {
+  "origin": "wilfred:src/hyperwilfred_core/codex.py",
+  "source_sha": "9b6567acf3530d5af25ef937353aa55bfc2a3fcd378964f285dd23013133363f",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/command_center/__init__.py": {
+  "origin": "wilfred:src/hyperwilfred_core/command_center/__init__.py",
+  "source_sha": "9d9e58e8b9430ec30d4c8f740d59d34ddf1a81c4ef0ee42c0b7b0cf96eed3512",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/command_center/attention.py": {
+  "origin": "wilfred:src/hyperwilfred_core/command_center/attention.py",
+  "source_sha": "a1e27c5788207b298e76735145e66142258b2721ef8d390cc6ee4797084bcea1",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/command_center/collect_closed.py": {
+  "origin": "wilfred:src/hyperwilfred_core/command_center/collect_closed.py",
+  "source_sha": "d50cd9d25e232ad30099c2b75353e4cb43700bc586c96712c681e556e50bfeea",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/command_center/collect_memory.py": {
+  "origin": "wilfred:src/hyperwilfred_core/command_center/collect_memory.py",
+  "source_sha": "983dd5ff41c7c68cb15488dce5afdb242ec0a4e307691c1f886d8d1fd695e723",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/command_center/collect_ops.py": {
+  "origin": "wilfred:src/hyperwilfred_core/command_center/collect_ops.py",
+  "source_sha": "476688472fdf93dcac5bf393424cab64aebdc8f23c23dba1876b532f2f8392bb",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/command_center/collect_projects.py": {
+  "origin": "wilfred:src/hyperwilfred_core/command_center/collect_projects.py",
+  "source_sha": "85a276c9f7dcb66d7aa1f0debf5e1539463471b926d90bdb4cd51b4ffefc7e2f",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/command_center/collect_runs.py": {
+  "origin": "wilfred:src/hyperwilfred_core/command_center/collect_runs.py",
+  "source_sha": "33714736f3eb7357d023d4e4f46dabcf0d244f1f32bf90f7de52c95b42364631",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/command_center/gitconfig.py": {
+  "origin": "wilfred:src/hyperwilfred_core/command_center/gitconfig.py",
+  "source_sha": "dfe6cab6632500494bf8647d21370e8a333384143504dcf92b400bf4d0558829",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/command_center/gitread.py": {
+  "origin": "wilfred:src/hyperwilfred_core/command_center/gitread.py",
+  "source_sha": "aa857d4beb38351da3b4def67011140c9ff26d704c9e033eaf508c2001d6c50e",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/command_center/model.py": {
+  "origin": "wilfred:src/hyperwilfred_core/command_center/model.py",
+  "source_sha": "649d913afe79ab299bfcfeb44e808c5c9c42bf9472c305cdf2bd90b7d4f84ba5",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/command_center/opsread.py": {
+  "origin": "wilfred:src/hyperwilfred_core/command_center/opsread.py",
+  "source_sha": "589329b4d77af8ead8b6ebad22531c1a831059d42ba4ae1618559d50b4defacf",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/command_center/paths.py": {
+  "origin": "wilfred:src/hyperwilfred_core/command_center/paths.py",
+  "source_sha": "fa91d31ee1b33f78bcb28936ab25f2f0a44ed292a99e5a063ec4aa39f639efbf",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/command_center/render.py": {
+  "origin": "wilfred:src/hyperwilfred_core/command_center/render.py",
+  "source_sha": "1af97bb95c519a8cd5ecaa35706bfa7c878f9bb16e903833d6dc58c34278f68f",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/command_center/run_detail.py": {
+  "origin": "wilfred:src/hyperwilfred_core/command_center/run_detail.py",
+  "source_sha": "369689c9ec1e077ff53e862743b3d2ff1c449ebef294ac0565a0dc49a139e58c",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/command_center/snapshot.py": {
+  "origin": "wilfred:src/hyperwilfred_core/command_center/snapshot.py",
+  "source_sha": "827fd50cd421286b9f1b2baf1c15b2dfe7fbd3ed599c6fcfb65c958a99e0820a",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/command_center/text_es.py": {
+  "origin": "wilfred:src/hyperwilfred_core/command_center/text_es.py",
+  "source_sha": "597bb15e905b00d231af23bff5f3ec0e0c9dc763f78c296a58937f5c762091e8",
+  "mode": "curated"
+ },
+ "wilfred/src/hyperwilfred_core/compiler.py": {
+  "origin": "wilfred:src/hyperwilfred_core/compiler.py",
+  "source_sha": "16308dc34f0d57035c857c3838a96bc95aced4f41bb3704a86d8e2497128c0c7",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/cost.py": {
+  "origin": "wilfred:src/hyperwilfred_core/cost.py",
+  "source_sha": "45032ec8b302921b4759f4caac530c5f1f1c6366ddb5dcf8006b20dda0c4b3a5",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/durable.py": {
+  "origin": "wilfred:src/hyperwilfred_core/durable.py",
+  "source_sha": "13fba41a58857fa21f31b5fc499f1866f4166ae7839b316307325c6149b2f072",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/engine.py": {
+  "origin": "wilfred:src/hyperwilfred_core/engine.py",
+  "source_sha": "cdc7bae019b6218e6ef9a623956d4b1b13dec37fc3e572015ab9a4ca67f5cd12",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/escalation.py": {
+  "origin": "wilfred:src/hyperwilfred_core/escalation.py",
+  "source_sha": "06c8b0502a2c743d7a1c6dd3345d6cf2b0dc766deb0b9cc9dc1e15656c69bf77",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/evaluators/__init__.py": {
+  "origin": "wilfred:src/hyperwilfred_core/evaluators/__init__.py",
+  "source_sha": "8f432640316919a324fc11afa500546914c30cc7cd75750d28a513b4718fc865",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/evaluators/base.py": {
+  "origin": "wilfred:src/hyperwilfred_core/evaluators/base.py",
+  "source_sha": "9a6e989d4067fa977c3e9848e9bb0fd614faf8e7fb214158ed81c5d7b372f306",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/evaluators/ci_parity.py": {
+  "origin": "wilfred:src/hyperwilfred_core/evaluators/ci_parity.py",
+  "source_sha": "03a7590d54bc182ea33c3fd253ebe57fcb29dfeec09ca9bff2a202118946975e",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/evaluators/code/__init__.py": {
+  "origin": "wilfred:src/hyperwilfred_core/evaluators/code/__init__.py",
+  "source_sha": "817655c8901fb398fb945ad902b16c8799f5ea6f296af2a776b8a2d0bf41d44e",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/evaluators/code/coverage_evaluator.py": {
+  "origin": "wilfred:src/hyperwilfred_core/evaluators/code/coverage_evaluator.py",
+  "source_sha": "620dc87b5199ad7276eaccedec85fc9b3e46e356708b0046fa9141f10f2ab504",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/evaluators/code/mypy_evaluator.py": {
+  "origin": "wilfred:src/hyperwilfred_core/evaluators/code/mypy_evaluator.py",
+  "source_sha": "c73de3a24eb08c3b7c4c52068b40c0ad62d70b0cfc4a30a3ab4449f2b32a7e69",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/evaluators/code/node_evaluator.py": {
+  "origin": "wilfred:src/hyperwilfred_core/evaluators/code/node_evaluator.py",
+  "source_sha": "3090d673b593edaf073720248a613816a735163a8d65ea404de0614713275d86",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/evaluators/code/pytest_evaluator.py": {
+  "origin": "wilfred:src/hyperwilfred_core/evaluators/code/pytest_evaluator.py",
+  "source_sha": "e25ac1d828b6e7fa82cc04338646e1966ff7f4dab4e75517296c901183599cf7",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/evaluators/code/ruff_evaluator.py": {
+  "origin": "wilfred:src/hyperwilfred_core/evaluators/code/ruff_evaluator.py",
+  "source_sha": "00ebd77de4c694b5366c11377efc294d5c868f8d1c9d66d9793ca1814d7476c5",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/evaluators/flaky.py": {
+  "origin": "wilfred:src/hyperwilfred_core/evaluators/flaky.py",
+  "source_sha": "ee978685c9655f60af3d75a8d7452c7ae808db459c62f86543da509802df3987",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/evaluators/registry.py": {
+  "origin": "wilfred:src/hyperwilfred_core/evaluators/registry.py",
+  "source_sha": "62836df2a19c795a4a8820014ec9714faad39dfaa239bd523c6eeb7d161a6266",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/evaluators/verification.py": {
+  "origin": "wilfred:src/hyperwilfred_core/evaluators/verification.py",
+  "source_sha": "f6e313bc9dc37bbaa63793aac0076382d5a75b4d339232e7ef3f729b2cd68378",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/foundry.py": {
+  "origin": "wilfred:src/hyperwilfred_core/foundry.py",
+  "source_sha": "1b4fe04f1f263ca5d474c9f2b25e49ea28f51f63003a052f30ad401d06ec3ac7",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/foundry_acceptance.py": {
+  "origin": "wilfred:src/hyperwilfred_core/foundry_acceptance.py",
+  "source_sha": "d5ec215659ace3a78c62364d366409b614fdd46169da95bd42bf2246453bfad0",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/foundry_agents.py": {
+  "origin": "wilfred:src/hyperwilfred_core/foundry_agents.py",
+  "source_sha": "cd46b7dab932dacd90c6c9be90afe9108b69ba87e9e38ada573d1175d01ec865",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/foundry_design.py": {
+  "origin": "wilfred:src/hyperwilfred_core/foundry_design.py",
+  "source_sha": "14cf2741c005ed83a404fe74b9828b1c7979774ca929ee2680129a9039ba32b5",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/foundry_execution.py": {
+  "origin": "wilfred:src/hyperwilfred_core/foundry_execution.py",
+  "source_sha": "b3037bfcb6b6f35588ac85446d67b6df84eeecceca7eb2d24b0fcc47be1b100e",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/foundry_families.py": {
+  "origin": "wilfred:src/hyperwilfred_core/foundry_families.py",
+  "source_sha": "7b1e3ee4e56139ab5faeca812740486cf26873ae77d844a0bb99cf078ee5f2ba",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/foundry_intake.py": {
+  "origin": "wilfred:src/hyperwilfred_core/foundry_intake.py",
+  "source_sha": "49f536e45a2e3652eeb4d7c7f88ac7dd37f4f09d2ce4378d50735da0784bf406",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/foundry_lifecycle.py": {
+  "origin": "wilfred:src/hyperwilfred_core/foundry_lifecycle.py",
+  "source_sha": "e8702f2f7550a39e8a43cefde8cd9644dbf3d594dfb0e764e5202af56a62b856",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/foundry_models.py": {
+  "origin": "wilfred:src/hyperwilfred_core/foundry_models.py",
+  "source_sha": "8180a257cce12b836817df1137a9afcb2fe1bf9df18330acc1ec488cb84c669b",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/foundry_runtime.py": {
+  "origin": "wilfred:src/hyperwilfred_core/foundry_runtime.py",
+  "source_sha": "331b7cb6b9721f8ba284468f3eff8b80d9f8d8d746627203247f0a382cac54b1",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/foundry_sandbox.py": {
+  "origin": "wilfred:src/hyperwilfred_core/foundry_sandbox.py",
+  "source_sha": "7efe3b6b60a621f84c2527e5d3fdc443f4d3b7a88edea8d9fef58e2f4301d280",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/foundry_scenarios.py": {
+  "origin": "wilfred:src/hyperwilfred_core/foundry_scenarios.py",
+  "source_sha": "59a60b5ecbe7a6ccbde7264ca17b553c380b0e1d5230d8b96580429f9054c0d5",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/foundry_scout.py": {
+  "origin": "wilfred:src/hyperwilfred_core/foundry_scout.py",
+  "source_sha": "8980286b1c0471e3450ec58dd9cdf57dfe3d6e4a496af65c2a75bb584b36a76d",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/foundry_storage.py": {
+  "origin": "wilfred:src/hyperwilfred_core/foundry_storage.py",
+  "source_sha": "b1f51ce9ece01bdb1f09ec3ce02ca09f26ff336a32ad41aa6e1f960e26e9a74e",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/foundry_validation.py": {
+  "origin": "wilfred:src/hyperwilfred_core/foundry_validation.py",
+  "source_sha": "93fbbd16f0f5382f76559ca29a72e41951ff03b2e533f35ec6874ac38798cbfc",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/gate_declaration.py": {
+  "origin": "wilfred:src/hyperwilfred_core/gate_declaration.py",
+  "source_sha": "55f30b0ba0589e2746dbc0f8285ccd2cb4635f29729a86a4335494db35abcf3d",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/gates.py": {
+  "origin": "wilfred:src/hyperwilfred_core/gates.py",
+  "source_sha": "46361fad0ace53099a3633c2a7f89ac6ab15437f3c92c318e0892f305bd7260f",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/guardrails.py": {
+  "origin": "wilfred:src/hyperwilfred_core/guardrails.py",
+  "source_sha": "8b40d455045eae3b85f41b1dd6df19be9513d502e7193a199ca8e3546e0aa8cb",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/hooks/__init__.py": {
+  "origin": "wilfred:src/hyperwilfred_core/hooks/__init__.py",
+  "source_sha": "c5bd169a9fed221705889b8f5dfaabc3dde78718b97b7f5fcb633729a7116e76",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/hooks/pretooluse.py": {
+  "origin": "wilfred:src/hyperwilfred_core/hooks/pretooluse.py",
+  "source_sha": "da9e4556832c1d317dd3b7aea8b11a11a1487c90ac05a804a1dff92a91c4399f",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/known_failures.py": {
+  "origin": "wilfred:src/hyperwilfred_core/known_failures.py",
+  "source_sha": "887657fa399e408368c4d809b7d1057716ef890f377a677e209c2e4ebb0c088e",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/learning.py": {
+  "origin": "wilfred:src/hyperwilfred_core/learning.py",
+  "source_sha": "29fd4fa0274d3e37572adaf13e1ecc647ac304e8a2a4e73399f816f544743a51",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/live_demo.py": {
+  "origin": "wilfred:src/hyperwilfred_core/live_demo.py",
+  "source_sha": "bb3fbff483a97a0b8474a825c4fb0719f7a72d3cc9b41e5c087df19072f34fe3",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/observability.py": {
+  "origin": "wilfred:src/hyperwilfred_core/observability.py",
+  "source_sha": "9d0a581a4fc264fd7be75a1324748b6ba9a359ac7265e7eff352d2b105ed8bea",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/path_safety.py": {
+  "origin": "wilfred:src/hyperwilfred_core/path_safety.py",
+  "source_sha": "72cbaac5c0e0f8a7cee5955fa7992a20ca73df9dd7ba28b88c3240fa15016999",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/pipeline.py": {
+  "origin": "wilfred:src/hyperwilfred_core/pipeline.py",
+  "source_sha": "1518ce4870122f87aa23f01ea57257aca3e027b78c3cb1162165e21931b389d5",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/plan_lint.py": {
+  "origin": "wilfred:src/hyperwilfred_core/plan_lint.py",
+  "source_sha": "e3ae91db79c57020b7285e2f70f99e1160340ab95d2cd748128f8791b1722fdf",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/protected_paths.py": {
+  "origin": "wilfred:src/hyperwilfred_core/protected_paths.py",
+  "source_sha": "0e0b989bf0e088771780a9c93e5308ed0a50e389f0d84e6111e7748303234b6f",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/quality.py": {
+  "origin": "wilfred:src/hyperwilfred_core/quality.py",
+  "source_sha": "2add7da8d4fe6e6db85613f3520956068f3c5c7cf3e5352d2f8b884f6336f044",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/regression.py": {
+  "origin": "wilfred:src/hyperwilfred_core/regression.py",
+  "source_sha": "48ec32d15fe2ae9dfbd0cc4b161e8a29e37bb99a25c07bc6084042f3d9917864",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/reproducibility.py": {
+  "origin": "wilfred:src/hyperwilfred_core/reproducibility.py",
+  "source_sha": "461a868ba783e25ac8afdb1b9eded4f2e727e4c4b042db3861a33a51b671ca45",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/resume.py": {
+  "origin": "wilfred:src/hyperwilfred_core/resume.py",
+  "source_sha": "d86d349fc86a2e30905d288213b2b999329fd678f841c6ff6a48d21ea8296640",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/review.py": {
+  "origin": "wilfred:src/hyperwilfred_core/review.py",
+  "source_sha": "e8f3493aaca5ffec3c71ea57183e92801d781434e2868582ac60ef9ccdc6db06",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/run_store.py": {
+  "origin": "wilfred:src/hyperwilfred_core/run_store.py",
+  "source_sha": "940a62997bd583f58fbf01fe6b319cf3c6337c9723c21c146c3a830fa2ed9058",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/schemas.py": {
+  "origin": "wilfred:src/hyperwilfred_core/schemas.py",
+  "source_sha": "7b0096a77b73af69cceffc1fa9b80d66b38f56060993cf570321f0f04e00964f",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/severity_floor.py": {
+  "origin": "wilfred:src/hyperwilfred_core/severity_floor.py",
+  "source_sha": "fb6361e9232e86f7352e6f7619502cf08a68958f4752c46af5d71b89882cb044",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/steps/build/01_frame.md": {
+  "origin": "wilfred:src/hyperwilfred_core/steps/build/01_frame.md",
+  "source_sha": "321849f1d7d4ca4da81cb8a82b628b807cd7319d0311b560e815d02b105576b9",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/steps/build/02_decompose.md": {
+  "origin": "wilfred:src/hyperwilfred_core/steps/build/02_decompose.md",
+  "source_sha": "894190f78448916b3b5f553513a0b6f60f4e37fe9c7a6f045b7a84a5c8a027f4",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/steps/build/03_scaffold.md": {
+  "origin": "wilfred:src/hyperwilfred_core/steps/build/03_scaffold.md",
+  "source_sha": "d2b0d11144601108ca3b1c701d5f3e03e04931cbd0fb3cbfdd8de0d30eb8f2ef",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/steps/build/04_implement.md": {
+  "origin": "wilfred:src/hyperwilfred_core/steps/build/04_implement.md",
+  "source_sha": "32a1b566a7f6c92beaa34b6da14152c6bf1085e5f5f97e44f4d0fd23e9c04d6c",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/steps/build/05_evaluate.md": {
+  "origin": "wilfred:src/hyperwilfred_core/steps/build/05_evaluate.md",
+  "source_sha": "7daa1769870f937989beab958e7e8efece1f117e1dd4ce00de80aa9d24fda729",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/steps/build/06_verify.md": {
+  "origin": "wilfred:src/hyperwilfred_core/steps/build/06_verify.md",
+  "source_sha": "0209e8723dfd3b564b3f1356e429dc279b0a81ed709d2aba32407ffa76262b58",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/steps/build/07_ship.md": {
+  "origin": "wilfred:src/hyperwilfred_core/steps/build/07_ship.md",
+  "source_sha": "2244d7a45bd5a80af0fe3e32946988accb90b1281c364f487992f447579ca582",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/steps/improve/01_comprehend.md": {
+  "origin": "wilfred:src/hyperwilfred_core/steps/improve/01_comprehend.md",
+  "source_sha": "0545410f755074d1992791d1d975aeb59f1108abd8c049ed8a645bef058e75f4",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/steps/improve/02_locate.md": {
+  "origin": "wilfred:src/hyperwilfred_core/steps/improve/02_locate.md",
+  "source_sha": "0ef0df389d444ac0522ae7427bc2f9eae83800acd5b59125ffdc8aa5ed37d1a1",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/steps/improve/03_implement.md": {
+  "origin": "wilfred:src/hyperwilfred_core/steps/improve/03_implement.md",
+  "source_sha": "25a6fed58c75e9c5584f0d2b09cb0b520ee17271b9564b9c150da5ea82e83ca3",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/steps/improve/04_regression.md": {
+  "origin": "wilfred:src/hyperwilfred_core/steps/improve/04_regression.md",
+  "source_sha": "5c6a8b9ec813cfc25b3293e15b9b3b0696fe6897a675496e49d6686b4ab921c4",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/steps/improve/05_verify.md": {
+  "origin": "wilfred:src/hyperwilfred_core/steps/improve/05_verify.md",
+  "source_sha": "e27e71913e5cdfd5c34bd3fb09c6196d35fdc01426fac72d94fa9cee714afbc1",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/steps/quality/00_loop.md": {
+  "origin": "wilfred:src/hyperwilfred_core/steps/quality/00_loop.md",
+  "source_sha": "ef3c7d2b2ccea3a033f6ae8b8abd90a685ab0c03d1cbc9020d9c10503a372dfa",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/steps/quality/01_subjective.md": {
+  "origin": "wilfred:src/hyperwilfred_core/steps/quality/01_subjective.md",
+  "source_sha": "94781b7faa80e23ac88f260eaf5a463e640d870683e32731f11557a09272b1eb",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/steps/quality/02_critique.md": {
+  "origin": "wilfred:src/hyperwilfred_core/steps/quality/02_critique.md",
+  "source_sha": "f95991efe6e8b122b1efe374e8f2a4eddb0277173b4ca5ef316420f00570d7d5",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/steps/quality/02b_adversarial.md": {
+  "origin": "wilfred:src/hyperwilfred_core/steps/quality/02b_adversarial.md",
+  "source_sha": "1799cf4eb15eaff55937163d241abb87da2523c27379ca97daa6bc9c739f43b5",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/steps/quality/03_patch.md": {
+  "origin": "wilfred:src/hyperwilfred_core/steps/quality/03_patch.md",
+  "source_sha": "a9a1032c0e711232dc3946fe2f8f328a87682477c311838da99219bd8f8300e0",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/steps/quality/state-claims-methodology.md": {
+  "origin": "wilfred:src/hyperwilfred_core/steps/quality/state-claims-methodology.md",
+  "source_sha": "72e37273aac023398e4b5a4dd725d41d9ce4b21f6df04a2d958940796d1a6ee9",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/steps/review/01_comprehend.md": {
+  "origin": "wilfred:src/hyperwilfred_core/steps/review/01_comprehend.md",
+  "source_sha": "15406626e94ded75b9b3ac583f33facb901ccd44ddb34d4937af95c6576b37c1",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/steps/review/02_critique.md": {
+  "origin": "wilfred:src/hyperwilfred_core/steps/review/02_critique.md",
+  "source_sha": "f068007d1f28b7cb92b3d5d274415e89d9c0e928d0cca7c50de0cc7aa9b6e385",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/steps/review/03_report.md": {
+  "origin": "wilfred:src/hyperwilfred_core/steps/review/03_report.md",
+  "source_sha": "ddf234126b04676ba697e34f2416127e6b42ff4785b8001b7d3d0ef26a1e8c0e",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/templates/evidence_runner.py": {
+  "origin": "wilfred:src/hyperwilfred_core/templates/evidence_runner.py",
+  "source_sha": "6072f5f5d0dd454a5944694184852109dccb4ef0092fb9b6349336be66b0463a",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/templates/provider_broker.py": {
+  "origin": "wilfred:src/hyperwilfred_core/templates/provider_broker.py",
+  "source_sha": "536aa673bb839cf11217da780c95c67bcba5d92a97f86ec08ae559b8bda83035",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/templates/provider_events.py": {
+  "origin": "wilfred:src/hyperwilfred_core/templates/provider_events.py",
+  "source_sha": "3cd6d7db5fad3149519d90413d4f0780ba644577a8f63e4be24a5a117c12b186",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/traceability.py": {
+  "origin": "wilfred:src/hyperwilfred_core/traceability.py",
+  "source_sha": "687ecc8f953bf1fc5f8faf257cb5fa486f4e4edceb9ac2d84d6a5f5bcfe69406",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/verify_checks.py": {
+  "origin": "wilfred:src/hyperwilfred_core/verify_checks.py",
+  "source_sha": "71ece5782e8f8dce5dac31ac5ca541bd668a62ff1221f72897b6f0a60e695352",
+  "mode": "auto"
+ },
+ "wilfred/src/hyperwilfred_core/wave_planner.py": {
+  "origin": "wilfred:src/hyperwilfred_core/wave_planner.py",
+  "source_sha": "118ddc1873820dbc8b01d60513c4537ccbbf9da9e708c3a2917dbbf3a5678d2c",
+  "mode": "auto"
+ },
+ "wilfred/tests/conftest.py": {
+  "origin": "wilfred:tests/conftest.py",
+  "source_sha": "8d950bee5aa7c4a8a2fbd85724ddca99efc09b8ec1b5fb6f30c8117e8edb39f1",
+  "mode": "auto"
+ },
+ "wilfred/tests/fixtures/foundry/invalid.json": {
+  "origin": "wilfred:tests/fixtures/foundry/invalid.json",
+  "source_sha": "47ec86c6231f76bf4318f45fea931178f44927193a13c5b3764d2cba46291a18",
+  "mode": "auto"
+ },
+ "wilfred/tests/fixtures/foundry/valid.json": {
+  "origin": "wilfred:tests/fixtures/foundry/valid.json",
+  "source_sha": "8b9e839ab88e8d2f251c1a45c85590ec0705394c39f67c84032db99445735c3b",
+  "mode": "auto"
+ },
+ "wilfred/tests/ops_fakes.py": {
+  "origin": "wilfred:tests/ops_fakes.py",
+  "source_sha": "33a15d3c72db51e3c83f0dab203c98856830e97a29e16859447a3a29155a151d",
+  "mode": "auto"
+ },
+ "wilfred/tests/review_attestation.py": {
+  "origin": "wilfred:tests/review_attestation.py",
+  "source_sha": "93052331016493cbb26c6d8174b1966ad67e62f27316a99ebb4bcb23cf1f369a",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_acceptance_demo.py": {
+  "origin": "wilfred:tests/test_acceptance_demo.py",
+  "source_sha": "08d67dbd81f9105d0525bf103e8c8c5e15a7d9ede54a203e6db0e875e03ea017",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_adversarial_lens.py": {
+  "origin": "wilfred:tests/test_adversarial_lens.py",
+  "source_sha": "eb0a2b2676784431f552e6956f1f6652442e0ad3ae56365227180e1b00692925",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_approval_boundary.py": {
+  "origin": "wilfred:tests/test_approval_boundary.py",
+  "source_sha": "83214b30b91958a7a44f779e75b82075ed26cccccdd3e5e867c969f35e5eecce",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_approval_lifecycle.py": {
+  "origin": "wilfred:tests/test_approval_lifecycle.py",
+  "source_sha": "a790ceb47451b7cd3b8e50fb316a691c51b0d0cd99aa3f23a92934695ccffc9c",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_ci_parity.py": {
+  "origin": "wilfred:tests/test_ci_parity.py",
+  "source_sha": "59001a7add3e52545fe5cef8954753f93103041f8d0e497c8f02089108024bb9",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_cli.py": {
+  "origin": "wilfred:tests/test_cli.py",
+  "source_sha": "439591de01d696a00ab8ae939bd523304b91f3b7779a904a7be778d07e9198cd",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_cli_phase4.py": {
+  "origin": "wilfred:tests/test_cli_phase4.py",
+  "source_sha": "d68b022b3b51a47fbc7e63905d4115c74ff666b8dfa2d397e267b93914462d03",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_cli_phase5.py": {
+  "origin": "wilfred:tests/test_cli_phase5.py",
+  "source_sha": "cac49ee3972794e5774299f36435dbc772c87e8a343472aaba5f28acbfa3463f",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_codex.py": {
+  "origin": "wilfred:tests/test_codex.py",
+  "source_sha": "d984a38b58d8c01287ef1a4ac867fbd10f4bd87b9e1d229fc147ad7883ab6c36",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_command_center_attention.py": {
+  "origin": "wilfred:tests/test_command_center_attention.py",
+  "source_sha": "a70b85b524a4f2e66a1601aac955636f49b9b41d09621e68991dc34f377ec7f4",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_command_center_cli.py": {
+  "origin": "wilfred:tests/test_command_center_cli.py",
+  "source_sha": "0c44bb77724d61056bfdbc7828fa24ed2611cd3e4deb8e5796c09c53c677f768",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_command_center_closed.py": {
+  "origin": "wilfred:tests/test_command_center_closed.py",
+  "source_sha": "4ceb8c1712b2432baceb050d8de86f6d44e671b7d9f844c63451b5ceefd92e36",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_command_center_memory.py": {
+  "origin": "wilfred:tests/test_command_center_memory.py",
+  "source_sha": "c2f6b098674c7e4d7bf4e9e76106adc84be651330240010c669fb24e71098a0a",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_command_center_ops_cli.py": {
+  "origin": "wilfred:tests/test_command_center_ops_cli.py",
+  "source_sha": "c7682d0bcdcd1c0a58d64a28bd459b384e65ab083537b3f5e96f84241d40f43c",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_command_center_ops_collect.py": {
+  "origin": "wilfred:tests/test_command_center_ops_collect.py",
+  "source_sha": "703db964aad298826988feba185696e2eb3e89e15880c6b902481d4d5fb1da5c",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_command_center_ops_inbox.py": {
+  "origin": "wilfred:tests/test_command_center_ops_inbox.py",
+  "source_sha": "c78f459feecb9eccd86c5a9144b44e6b7e3ed2c9540298d653fe193e2b3bdb6a",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_command_center_ops_model.py": {
+  "origin": "wilfred:tests/test_command_center_ops_model.py",
+  "source_sha": "8c692fd3c601c7040b070f548e0796066e977542f7eb3dc0bdaf52e8c8e1f814",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_command_center_ops_render.py": {
+  "origin": "wilfred:tests/test_command_center_ops_render.py",
+  "source_sha": "cac0f95307243405abf6d8e7fe2badd696ba9e406209737b1780392249af06b1",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_command_center_opsread.py": {
+  "origin": "wilfred:tests/test_command_center_opsread.py",
+  "source_sha": "ba36ccf8c09f440977eb6c80da00a12d005469df14fc619fbb77038bfe3828b6",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_command_center_projects.py": {
+  "origin": "wilfred:tests/test_command_center_projects.py",
+  "source_sha": "ddb7c98886550edd7540b906d0e736e31daff86cffc217a0cca12dcc675959a5",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_command_center_readonly.py": {
+  "origin": "wilfred:tests/test_command_center_readonly.py",
+  "source_sha": "f115148d083b586ff34c9100cd3d98f4966e17bd47c9a5ad8acfb31dd7c070ce",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_command_center_render.py": {
+  "origin": "wilfred:tests/test_command_center_render.py",
+  "source_sha": "696ce78574b27f7fdf32c857e35a9d0e1a6c500b340ca984dd4fc78a81e603c0",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_command_center_runs.py": {
+  "origin": "wilfred:tests/test_command_center_runs.py",
+  "source_sha": "6298649606b26ce5867a7aa8a79a5fcfe1350613a93fca56c4afe692ab73782b",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_compiler.py": {
+  "origin": "wilfred:tests/test_compiler.py",
+  "source_sha": "2e7e2c3c89ba1d9fa18c4a5d98dc0189eafd70ec24e250f7a5d5f7a7fa40a78e",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_control_hardening.py": {
+  "origin": "wilfred:tests/test_control_hardening.py",
+  "source_sha": "e077eb4c3e819f6722415bf84778e6c885cca97bba4acf9bc7c2511052a40f16",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_cost.py": {
+  "origin": "wilfred:tests/test_cost.py",
+  "source_sha": "22a96b0e2f911dad8923518c24ad7856134534edf9dad637594c53caf793d54b",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_demo.py": {
+  "origin": "wilfred:tests/test_demo.py",
+  "source_sha": "532d0db243149d1c2e22b4fdeb7077b0626bf830b7af97382ada72e0ca420285",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_durable.py": {
+  "origin": "wilfred:tests/test_durable.py",
+  "source_sha": "a50e1e6a6919a334bbaa839c53e15e8030c6a8aff09f1796f978d1f937ab4359",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_e2e_build.py": {
+  "origin": "wilfred:tests/test_e2e_build.py",
+  "source_sha": "fe96d2ff5b610d3b49d97629b9f2e8fc00e634aa19383b149c7b2b589df2e4d6",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_engine.py": {
+  "origin": "wilfred:tests/test_engine.py",
+  "source_sha": "8b95f0a167ab272300a1eaa9fd095ff9b1875ac8cee97f10c15bef95a6bc8799",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_engine_state_isolation.py": {
+  "origin": "wilfred:tests/test_engine_state_isolation.py",
+  "source_sha": "2d6ee3571775dbbdf8f47f42c127892a55d1d3bae9d0536e03e45979c5566f13",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_escalation.py": {
+  "origin": "wilfred:tests/test_escalation.py",
+  "source_sha": "f2373596b69ad5baaeca91f1d029b85fb261a6d79edf014829f544c652341790",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_flaky_gate.py": {
+  "origin": "wilfred:tests/test_flaky_gate.py",
+  "source_sha": "6d702d5dadda408fec602ca43c6ae89f2361769f3067c700a17261e016c1eda2",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_foundry_architectures.py": {
+  "origin": "wilfred:tests/test_foundry_architectures.py",
+  "source_sha": "ccb96f9c708e570f8e5471a2425cdf4099475a7c3083cddc5e954b5d9ec5a54f",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_foundry_contract_hardening.py": {
+  "origin": "wilfred:tests/test_foundry_contract_hardening.py",
+  "source_sha": "0d522dd22e4162a34d9f9e7009f9ad2d464e5c14ef2fcb663834beb28a00e65d",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_foundry_core.py": {
+  "origin": "wilfred:tests/test_foundry_core.py",
+  "source_sha": "22bd9394ab1db722eabf31314080d682012d636e77e3fe9bc930f665f4d4416e",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_foundry_e2e.py": {
+  "origin": "wilfred:tests/test_foundry_e2e.py",
+  "source_sha": "ffd8fb3f33088e32c049686c8cb4e713438936ef04696e4cf55f5530e7b29533",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_foundry_execution.py": {
+  "origin": "wilfred:tests/test_foundry_execution.py",
+  "source_sha": "3f0f1a7fd1d929a10668b362a5aef84cc19f6a58e8813ccc0ddb48f62fa1c938",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_foundry_isolation.py": {
+  "origin": "wilfred:tests/test_foundry_isolation.py",
+  "source_sha": "ba0d906b5202cae08193350d2ef6a630ef55aaedce9f9424d0a9595bfed93443",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_foundry_recovery.py": {
+  "origin": "wilfred:tests/test_foundry_recovery.py",
+  "source_sha": "996d569ff68fd2335ec0618196fb72a8f088c078e63dcd06652d3ff2c49ad9d1",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate_authority.py": {
+  "origin": "wilfred:tests/test_gate_authority.py",
+  "source_sha": "33a7b638e936cfe86634b5db16caf2bce4303abe6c87d66830d239aeb3742e0a",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate_registry.py": {
+  "origin": "wilfred:tests/test_gate_registry.py",
+  "source_sha": "0f8203e5210cc441086d0e486649487b5501a230db128a18fb4338c1dcc7e202",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gates.py": {
+  "origin": "wilfred:tests/test_gates.py",
+  "source_sha": "fd02bea60212ee998681a4274f3df676fccb06edd4d03c082b00cc770fdace74",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_generated_artifacts.py": {
+  "origin": "wilfred:tests/test_generated_artifacts.py",
+  "source_sha": "9a357f587fc2cbcdd4bb6fd9ee4d546b0f04f87f76221379e9b31004b8e9bdb0",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_generated_hardening.py": {
+  "origin": "wilfred:tests/test_generated_hardening.py",
+  "source_sha": "652012a838217e460106947eada2ffd6245dd46721b463ffdbfe07d26bcc0f50",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_guardrails.py": {
+  "origin": "wilfred:tests/test_guardrails.py",
+  "source_sha": "95e6377e8e5cbec7be6a57da2c28c7e342b30a2c0ba638d40a4e9658c3e04117",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_human_approvals_policy.py": {
+  "origin": "wilfred:tests/test_human_approvals_policy.py",
+  "source_sha": "7be38032166978b06d6db01cf3e907c032eaefce572adb850ea8fe5f468ce624",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_import_guard.py": {
+  "origin": "wilfred:tests/test_import_guard.py",
+  "source_sha": "68e3cef1c6a91c6b863df51e2c8f96929fbb0300f9a74141b5c503f17f8c4e02",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_improve.py": {
+  "origin": "wilfred:tests/test_improve.py",
+  "source_sha": "cdde0f2d293bbc19c611e1e0572e566b3f410c2631aef1412f85802f592e7f48",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_installation.py": {
+  "origin": "wilfred:tests/test_installation.py",
+  "source_sha": "ad6c2db47b9f59925d273bf2f0abb2cbfeda3b267004f402d7a60593c2c3c79c",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_installed_hook_e2e.py": {
+  "origin": "wilfred:tests/test_installed_hook_e2e.py",
+  "source_sha": "bdc97ac6358980385b3375b3284b5308e96fc1f8aae70f2a29a12095911f9502",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_known_failures.py": {
+  "origin": "wilfred:tests/test_known_failures.py",
+  "source_sha": "aab1bae487f38986a4574c82a1311d10879645932bf9861ee69ffbcfcbe46710",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_learning.py": {
+  "origin": "wilfred:tests/test_learning.py",
+  "source_sha": "718c97f0412388d710afa3f0b0df425a52f4d118cf63e807489c9ec145aa14a7",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_learning_evidence.py": {
+  "origin": "wilfred:tests/test_learning_evidence.py",
+  "source_sha": "630cacf025b8634ed8434f17295c71b9e6ce7e31b29b4fd86cb2d6e32b3a84b3",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_lessons.py": {
+  "origin": "wilfred:tests/test_lessons.py",
+  "source_sha": "0174fb5f0823ba611d50f5e62c517decbfefccbead49810c815ccdde29d63db4",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_observability.py": {
+  "origin": "wilfred:tests/test_observability.py",
+  "source_sha": "3c3fb435d800ae1dc514a0f03e00ad5063259e876a9ed8e3a6ae33d0cd1cf779",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_plan_lint.py": {
+  "origin": "wilfred:tests/test_plan_lint.py",
+  "source_sha": "91e93886e4fa066c0904f05872ecac0058d837b7831b459908baf9563ecf779a",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_pretooluse_hook.py": {
+  "origin": "wilfred:tests/test_pretooluse_hook.py",
+  "source_sha": "56c4e0b2471ec6125aa4dbe5ab20028c83ef902e64cdc54ddc564539cae00e85",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_protected_paths.py": {
+  "origin": "wilfred:tests/test_protected_paths.py",
+  "source_sha": "759c36f37fbbc2baf84c9108c1a8b394b3174684b86b34c01880b293723764c8",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_quality.py": {
+  "origin": "wilfred:tests/test_quality.py",
+  "source_sha": "b533aaabcb88f78263d439d81b45cc633486a7ba061dac76b620377396e7e599",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_quality_committed_paths.py": {
+  "origin": "wilfred:tests/test_quality_committed_paths.py",
+  "source_sha": "ad69ca87067a248f30b8559596fcea2b0fefc8103a948bdd1a2f423b065f5688",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_regression_scope.py": {
+  "origin": "wilfred:tests/test_regression_scope.py",
+  "source_sha": "62a9f8edca9f049086ed3e58020c83a500dbe25747f01de7f2972356564d74a6",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_resume.py": {
+  "origin": "wilfred:tests/test_resume.py",
+  "source_sha": "2386ff90ebd6ff4ccdfac80c077508439a8bba61e35be9cff85680c23ac8f406",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_review.py": {
+  "origin": "wilfred:tests/test_review.py",
+  "source_sha": "5190ac59c365ce0e274dd2316c6cafa0ff29476cb6d8dfa6ed61a9d6bc77646e",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_review_boundary_e2e.py": {
+  "origin": "wilfred:tests/test_review_boundary_e2e.py",
+  "source_sha": "4d161b6359d0031976f98d865ddad6fc1f1eecb0c950844aeb8680280e3f8fc1",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_review_fixes.py": {
+  "origin": "wilfred:tests/test_review_fixes.py",
+  "source_sha": "89c888ef21c112577c3bb2b57d59a83e4305a191b99f661e4446b573c6586f94",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_review_lenses.py": {
+  "origin": "wilfred:tests/test_review_lenses.py",
+  "source_sha": "a3b9bdbcb4c5f3ab18d4080348f5a4275378156209586f0fa148850975c5c67e",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_review_provenance.py": {
+  "origin": "wilfred:tests/test_review_provenance.py",
+  "source_sha": "bdaa7b2390788f02197a54dc94428b577e622a143c974c96e7c87b356e951090",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_severity_floor.py": {
+  "origin": "wilfred:tests/test_severity_floor.py",
+  "source_sha": "5a5e0182cc8e7de5df5f70b6383403548d74dab112a3bdb7cbccbaefcf8f4780",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_state_claims.py": {
+  "origin": "wilfred:tests/test_state_claims.py",
+  "source_sha": "eb85cfdec570374925305bb017c8faa47069d95c3d327c5e48240254d0e0f905",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_traceability.py": {
+  "origin": "wilfred:tests/test_traceability.py",
+  "source_sha": "9c3a80239e9f91af5e26bf0f54ddbc49d1d874d7634eed11be207c02cc29493f",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_verify_checks.py": {
+  "origin": "wilfred:tests/test_verify_checks.py",
+  "source_sha": "842c6f33e37dfb23ffafbf5f0e73924296322bf1e050869406b0ba77e99eb118",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_wave_planner.py": {
+  "origin": "wilfred:tests/test_wave_planner.py",
+  "source_sha": "0213df29d7800dc74c72c54df3ae6b9981b8c6677c1be03ac3fd4ae17845ee02",
+  "mode": "auto"
+ },
+ "wilfred/uv.lock": {
+  "origin": "wilfred:uv.lock",
+  "source_sha": "aaa68985f21f76b1bb97bd88d7d0a96e8197f96513f0434a9082ec468f42c0d5",
+  "mode": "auto"
+ }
+}

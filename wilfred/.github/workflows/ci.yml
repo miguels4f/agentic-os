@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    # Generated workers currently enforce isolation through macOS sandbox-exec.
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install locked development environment
+        run: uv sync --locked --group dev
+      - name: Test
+        run: uv run pytest
+      - name: Lint
+        run: uv run ruff check .
+      - name: Type check
+        run: uv run mypy src
+      - name: Build wheel
+        run: uv build --wheel --out-dir dist
+      - name: Smoke-test clean wheel installation
+        run: uv run pytest tests/test_installation.py -q

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agents Maintainer"
+  short_description: "Keep AGENTS.md synchronized with repo reality"
+  default_prompt: "Update AGENTS.md only when project structure, workflows, commands, or priorities change; otherwise report no changes."

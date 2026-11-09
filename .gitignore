@@ -1,0 +1,17 @@
+.DS_Store
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+dist/
+build/
+*.egg-info/
+.hw/
+.foundry/
+.env
+.env.*
+!.env.example
+# The private scrubbing map must never live in this repository.
+private-map.json

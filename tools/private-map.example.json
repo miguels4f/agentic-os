@@ -1,0 +1,23 @@
+{
+  "_comment": "Copy to ~/.config/agentic-os/private-map.json (chmod 600) and fill in YOUR private names. Never commit the real file. Only needed if you maintain your own fork of this kit from private originals.",
+  "sources": {
+    "skills": "~/.agents/skills",
+    "wilfred": "~/code/wilfred",
+    "wilfred_ref": "main",
+    "extra_files": {
+      "bin/local-ci": "~/.local/bin/local-ci"
+    }
+  },
+  "replacements": [
+    ["/Users/yourname", "~"],
+    ["\\bYourName\\b", "the owner"],
+    ["\\bClientCo\\b", "Acme"],
+    ["\\bsecret-project\\b", "project-a"]
+  ],
+  "denylist": [
+    ["yourname", "i"],
+    ["ClientCo", "i"],
+    ["secret-project", "i"]
+  ],
+  "allow": {}
+}

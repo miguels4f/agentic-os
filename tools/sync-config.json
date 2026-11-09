@@ -1,0 +1,51 @@
+{
+  "skills": [
+    "workflow-spec",
+    "slopbuster-audit",
+    "secret-leak-response",
+    "local-ci",
+    "browser-test-hygiene",
+    "ui-finish-gate",
+    "accessibility-audit",
+    "persona-walkthrough",
+    "money-flow-integrity",
+    "local-first-mvp",
+    "handoff-prompt",
+    "annotated-system-map",
+    "buscar-antes-de-construir",
+    "automation-governance",
+    "youtube-summarizer",
+    "agents-maintainer"
+  ],
+  "skill_exclude": [
+    ".venv",
+    ".venv/*",
+    "*/__pycache__",
+    "*/__pycache__/*",
+    "__pycache__",
+    "__pycache__/*",
+    "runners",
+    "runners/*",
+    "*.pyc",
+    "*.DS_Store"
+  ],
+  "wilfred": {
+    "target": "wilfred",
+    "exclude": [
+      "docs/evidence",
+      "docs/evidence/*",
+      "docs/remediation",
+      "docs/remediation/*",
+      "docs/reviews",
+      "docs/reviews/*",
+      "docs/portfolio",
+      "docs/portfolio/*",
+      "docs/linkedin-draft-es.md",
+      "docs/unification-inventory.md",
+      "docs/legacy-assets-register.md",
+      "docs/migration.md",
+      "docs/acceptance.md",
+      "docs/verification.md"
+    ]
+  }
+}

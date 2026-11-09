@@ -1,0 +1,317 @@
+#!/usr/bin/env bash
+# local-ci — run on your machine the checks your hosted CI (for example GitHub Actions) would run.
+#
+# Use it when hosted CI cannot be relied on (minutes or spending limit exhausted, an outage, or a
+# repository with no CI at all), as a pre-push hook, or simply before opening a pull request.
+# Companion of the `local-ci` skill in this kit, which adds an independent runner subagent and
+# an evidence file on top of this script.
+#
+# Usage:
+#   local-ci [--fast|--full] [--comment] [path]
+#     --fast     quick checks only (lint, type check, unit tests, secret scan). Default; meant
+#                for a pre-push hook.
+#     --full     the quick checks plus the slow ones (builds, end-to-end suites).
+#     --comment  post the summary as a comment on the branch's open pull request (needs `gh`).
+#     path       any folder inside the repository (default: the current folder).
+#
+# What it runs:
+#   1. If the repository has a `.local-ci.sh` file at its root, local-ci sources it. That file
+#      defines `ci_fast` (required) and `ci_full` (optional, only the slow extras: --full runs
+#      ci_fast, then ci_full) using the helpers below.
+#   2. Otherwise it auto-detects:
+#        Python + uv.lock       uv sync --locked; pytest; ruff check (if configured); mypy (if configured)
+#        Python + pyproject     pytest (with .venv/bin/python when present, else python3)
+#        Node + lockfile        install (npm ci / pnpm / yarn), then the package.json scripts that
+#                               exist among lint, typecheck or type-check, test, and build (--full)
+#        gitleaks installed     secret scan of the branch's commits and of uncommitted changes
+#      If nothing is detected, it prints "RESULT: NOT COVERED" and exits 0.
+#
+# Helpers available inside .local-ci.sh:
+#   step "<name>" <command...>   run a command, record PASS/FAIL with its duration
+#   skip "<reason>"              record a skipped check
+#   say "<text>"                 print and record a line
+#   touches '<regex>'            true when a file changed on this branch matches the regex
+#   changed                      list files changed on this branch (vs the default branch) + uncommitted
+#   ahead                        number of commits on this branch that the default branch lacks
+#   secret_scan                  the gitleaks checks described above
+#   Variables: ROOT, MODE (fast|full), BRANCH, SHA, BASE (default branch), BASE_REF, LOGDIR.
+#
+# Example .local-ci.sh:
+#   ci_fast() {
+#     step "Backend tests" bash -c 'cd backend && npm test'
+#     if touches '^docs/'; then step "Docs links" ./scripts/check_links.sh; else skip "Docs links (no docs change)"; fi
+#     secret_scan
+#   }
+#   ci_full() {
+#     step "End-to-end tests" bash -c 'cd e2e && npx playwright test'
+#   }
+#
+# As a pre-push hook: put `exec local-ci --fast` in .git/hooks/pre-push and make it executable.
+#
+# Result: the last line is "RESULT: ALL GREEN (<sha>)", "RESULT: FAILED (<sha>)" or
+# "RESULT: NOT COVERED (<sha>)". Exit code 0 unless a check failed (1) or the setup is wrong (2).
+# Summaries are kept in ~/.agents/local-ci/results/<repo>/<branch>-<sha>-<mode>.txt.
+set -uo pipefail
+
+# Hosted runners use bash 5; macOS ships bash 3.2, which breaks many check scripts (associative
+# arrays, empty arrays under set -u). Re-run under a newer bash when one is installed.
+if [ "${BASH_VERSINFO[0]}" -lt 4 ]; then
+  for b in /opt/homebrew/bin/bash /usr/local/bin/bash; do
+    if [ -x "$b" ]; then exec "$b" "$0" "$@"; fi
+  done
+fi
+for d in /opt/homebrew/bin /usr/local/bin; do
+  case ":$PATH:" in *":$d:"*) ;; *) if [ -d "$d" ]; then PATH="$d:$PATH"; fi ;; esac
+done
+export PATH
+# Most tools behave as on a hosted runner when CI is set (no watch mode, no interactive prompts).
+export CI=true
+
+# Git exports GIT_DIR (and similar variables) to hooks, notably when run from a linked worktree.
+# Inherited by the checks, they make every git command that a test fixture runs in a temporary
+# folder act on the real repository instead. Start clean.
+# shellcheck disable=SC2046
+unset $(git rev-parse --local-env-vars)
+
+MODE=fast
+COMMENT=0
+TARGET=.
+for a in "$@"; do
+  case "$a" in
+    --fast) MODE=fast ;;
+    --full) MODE=full ;;
+    --comment) COMMENT=1 ;;
+    -h|--help) awk 'NR>1 && /^#/ {sub(/^# ?/, ""); print; next} NR>1 {exit}' "$0"; exit 0 ;;
+    -*) echo "local-ci: unknown option $a (see --help)" >&2; exit 2 ;;
+    *) TARGET="$a" ;;
+  esac
+done
+
+ROOT="$(git -C "$TARGET" rev-parse --show-toplevel 2>/dev/null)" || { echo "local-ci: not inside a git repository: $TARGET" >&2; exit 2; }
+cd "$ROOT" || exit 2
+ORIGIN="$(git remote get-url origin 2>/dev/null || true)"
+# owner/name from https://host/owner/name(.git) or git@host:owner/name(.git); else the folder name.
+REPO="$(printf '%s' "$ORIGIN" | sed -E 's#^[A-Za-z+]+://[^/]+/##; s#^[^@/]+@[^:]+:##; s#\.git$##')"
+case "$REPO" in ""|/*|.*) REPO="$(basename "$ROOT")" ;; esac
+SHA="$(git rev-parse --short=8 HEAD 2>/dev/null)" || { echo "local-ci: the repository has no commit yet" >&2; exit 2; }
+BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+SAFE_BRANCH="$(printf '%s' "$BRANCH" | tr '/' '-')"
+RESULTS="$HOME/.agents/local-ci/results/$(printf '%s' "$REPO" | tr '/' '_')"
+mkdir -p "$RESULTS"
+SUMMARY="$RESULTS/${SAFE_BRANCH}-${SHA}-${MODE}.txt"
+TMPROOT="${TMPDIR:-/tmp}"
+LOGDIR="$(mktemp -d "${TMPROOT%/}/local-ci-${SHA}-XXXX")"
+FAILED=0
+: > "$SUMMARY"
+
+# The branch pull requests target: the remote's default branch, else init.defaultBranch, else main.
+if [ -n "$ORIGIN" ]; then
+  git remote set-head origin --auto > /dev/null 2>&1 || true
+  BASE="$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's#^origin/##')"
+fi
+BASE="${BASE:-$(git config init.defaultBranch 2>/dev/null || true)}"
+BASE="${BASE:-main}"
+
+say() { echo "$*" | tee -a "$SUMMARY"; }
+
+step() {
+  local name="$1"; shift
+  local log
+  log="$LOGDIR/$(printf '%s' "$name" | tr -c 'A-Za-z0-9' '_').log"
+  local start=$SECONDS
+  if "$@" > "$log" 2>&1; then
+    say "PASS  $name ($((SECONDS - start))s)"
+  else
+    say "FAIL  $name ($((SECONDS - start))s) — log: $log"
+    tail -25 "$log" | sed 's/^/      /'
+    FAILED=1
+  fi
+}
+
+skip() { say "SKIP  $1"; }
+
+say "local-ci [$MODE] $REPO $BRANCH @ $SHA ($(date '+%Y-%m-%d %H:%M'))"
+TRACKED_BEFORE="$(git status --porcelain --untracked-files=no)"
+if [ -n "$ORIGIN" ]; then
+  git fetch -q origin "$BASE" 2>/dev/null || say "WARN  could not fetch origin/$BASE; comparing with the local copy"
+fi
+# What the branch is compared with: origin/<default branch>, else the local default branch.
+BASE_REF=""
+if git rev-parse --verify -q "origin/$BASE" > /dev/null; then BASE_REF="origin/$BASE"
+elif git rev-parse --verify -q "refs/heads/$BASE" > /dev/null; then BASE_REF="$BASE"
+else say "WARN  no origin/$BASE or $BASE branch; path filters only see uncommitted changes"
+fi
+
+# Files changed on this branch compared with the base (what a pull request would show), plus
+# uncommitted changes, so path-aware checks match what hosted CI would run.
+# changed and touches are helpers for .local-ci.sh, so this script itself may never call them.
+# shellcheck disable=SC2329
+changed() {
+  {
+    if [ -n "$BASE_REF" ]; then git diff --name-only "$BASE_REF...HEAD" 2>/dev/null; fi
+    git diff --name-only HEAD 2>/dev/null
+  } | sort -u
+}
+# shellcheck disable=SC2329
+touches() { changed | grep -qE "$1"; }
+ahead() {
+  if [ -n "$BASE_REF" ]; then git rev-list --count "$BASE_REF..HEAD" 2>/dev/null || echo 0; else echo 0; fi
+}
+
+# ---------------------------------------------------------------- secret scan (gitleaks)
+secret_scan() {
+  if ! command -v gitleaks > /dev/null 2>&1; then skip "Secret scan (gitleaks not installed)"; return; fi
+  if ! gitleaks help git > /dev/null 2>&1; then skip "Secret scan (gitleaks 8.19 or newer needed)"; return; fi
+  local cfg=()
+  if [ -f .gitleaks.toml ]; then cfg=(--config "$ROOT/.gitleaks.toml"); fi
+  if [ -z "$BASE_REF" ]; then
+    step "Secret scan (whole history: no base branch)" gitleaks git --no-banner --redact ${cfg[@]+"${cfg[@]}"} .
+  elif [ "$(ahead)" -gt 0 ]; then
+    step "Secret scan (branch commits)" gitleaks git --no-banner --redact ${cfg[@]+"${cfg[@]}"} --log-opts="$BASE_REF..HEAD" .
+  else
+    skip "Secret scan of commits (no commits ahead of $BASE_REF)"
+  fi
+  # Uncommitted changes: copy the changed files into a scratch folder and scan only that.
+  local dirty f tree="$LOGDIR/uncommitted"
+  dirty="$(git diff --name-only HEAD 2>/dev/null)"
+  if [ -n "$dirty" ]; then
+    while IFS= read -r f; do
+      if [ -f "$f" ]; then mkdir -p "$tree/$(dirname "$f")" && cp "$f" "$tree/$f"; fi
+    done <<< "$dirty"
+    if [ -d "$tree" ]; then
+      step "Secret scan (uncommitted changes)" gitleaks dir --no-banner --redact ${cfg[@]+"${cfg[@]}"} "$tree"
+    fi
+  fi
+}
+
+# ---------------------------------------------------------------- auto-detection
+DETECTED=0
+
+has_pytests() {
+  grep -qE '^\[tool\.pytest' pyproject.toml 2>/dev/null && return 0
+  [ -f pytest.ini ] && return 0
+  git ls-files --cached --others --exclude-standard 2>/dev/null \
+    | grep -qE '(^|/)(test_[^/]*\.py|[^/]*_test\.py|conftest\.py)$'
+}
+configured() {  # configured <tool>: a [tool.<tool>] table in pyproject.toml or the tool's own config file
+  grep -qE "^\[tool\.$1([].])" pyproject.toml 2>/dev/null && return 0
+  case "$1" in
+    ruff) [ -f ruff.toml ] || [ -f .ruff.toml ] ;;
+    mypy) [ -f mypy.ini ] || [ -f .mypy.ini ] ;;
+    *) return 1 ;;
+  esac
+}
+
+python_uv() {
+  step "uv sync (locked)" uv sync --locked
+  if has_pytests; then step "pytest" uv run --no-sync pytest -q; else skip "pytest (no tests found)"; fi
+  local tool
+  for tool in ruff mypy; do
+    if ! configured "$tool"; then continue; fi
+    if ! uv run --no-sync which "$tool" > /dev/null 2>&1; then
+      skip "$tool (configured, but not installed in the project environment)"; continue
+    fi
+    if [ "$tool" = ruff ]; then
+      step "ruff check" uv run --no-sync ruff check .
+    elif grep -qE '^files *=' pyproject.toml mypy.ini .mypy.ini 2>/dev/null; then
+      step "mypy" uv run --no-sync mypy
+    elif [ -d src ]; then
+      step "mypy" uv run --no-sync mypy src
+    else
+      step "mypy" uv run --no-sync mypy . --exclude '(^|/)\.venv/'
+    fi
+  done
+}
+
+python_plain() {
+  local py=python3
+  if [ -x .venv/bin/python ]; then py=.venv/bin/python; fi
+  if has_pytests; then step "pytest ($py)" "$py" -m pytest -q; else skip "pytest (no tests found)"; fi
+}
+
+has_script() {  # has_script <name>: package.json defines that script
+  node -e 'const s=(require("./package.json").scripts)||{}; process.exit(s[process.argv[1]] ? 0 : 1)' "$1" 2>/dev/null
+}
+
+node_checks() {
+  local pm
+  local -a install
+  if [ -f package-lock.json ] || [ -f npm-shrinkwrap.json ]; then pm=npm; install=(npm ci)
+  elif [ -f pnpm-lock.yaml ]; then pm=pnpm; install=(pnpm install --frozen-lockfile)
+  elif [ -f yarn.lock ]; then
+    pm=yarn
+    if [ -f .yarnrc.yml ]; then install=(yarn install --immutable); else install=(yarn install --frozen-lockfile); fi
+  else
+    skip "Node checks (package.json without a lockfile)"; return
+  fi
+  DETECTED=1
+  if ! command -v "$pm" > /dev/null 2>&1; then
+    say "FAIL  $pm is not installed (for pnpm or yarn, try: corepack enable)"; FAILED=1; return
+  fi
+  step "$pm install" "${install[@]}"
+  if has_script lint; then step "$pm run lint" "$pm" run lint; fi
+  if has_script typecheck; then step "$pm run typecheck" "$pm" run typecheck
+  elif has_script type-check; then step "$pm run type-check" "$pm" run type-check; fi
+  if has_script test; then step "$pm run test" "$pm" run test; else skip "tests (no test script in package.json)"; fi
+  if has_script build; then
+    if [ "$MODE" = full ]; then step "$pm run build" "$pm" run build; else skip "build (run with --full)"; fi
+  fi
+}
+
+auto_detect() {
+  if [ -f pyproject.toml ]; then
+    DETECTED=1
+    if [ -f uv.lock ]; then
+      if command -v uv > /dev/null 2>&1; then python_uv; else say "FAIL  uv.lock found but uv is not installed"; FAILED=1; fi
+    else
+      python_plain
+    fi
+  fi
+  if [ -f package.json ]; then node_checks; fi
+  if [ "$DETECTED" -eq 1 ]; then secret_scan; fi
+}
+
+# ---------------------------------------------------------------- run
+if [ -f .local-ci.sh ]; then
+  say "Using .local-ci.sh"
+  # shellcheck disable=SC1091
+  source ./.local-ci.sh
+  if ! declare -F ci_fast > /dev/null; then
+    say "FAIL  .local-ci.sh does not define ci_fast"; echo "RESULT: FAILED ($SHA)" | tee -a "$SUMMARY"; exit 2
+  fi
+  ci_fast
+  if [ "$MODE" = full ]; then
+    if declare -F ci_full > /dev/null; then ci_full; else skip "slow checks (.local-ci.sh defines no ci_full)"; fi
+  fi
+else
+  auto_detect
+  if [ "$DETECTED" -eq 0 ]; then
+    say "SKIP  nothing to run: no .local-ci.sh, no Python project (pyproject.toml) and no Node project with a lockfile"
+    say "RESULT: NOT COVERED ($SHA)"
+    echo "Summary: $SUMMARY"
+    rm -rf "$LOGDIR"
+    exit 0
+  fi
+fi
+
+# The checks must leave tracked files exactly as they found them.
+if [ "$(git status --porcelain --untracked-files=no)" != "$TRACKED_BEFORE" ]; then
+  say "FAIL  Checks modified tracked files (restore them before pushing):"
+  diff <(echo "$TRACKED_BEFORE") <(git status --porcelain --untracked-files=no) | grep '^>' | sed 's/^>/      /' | tee -a "$SUMMARY"
+  FAILED=1
+fi
+if [ "$FAILED" -eq 0 ]; then say "RESULT: ALL GREEN ($SHA)"; else say "RESULT: FAILED ($SHA)"; fi
+echo "Summary: $SUMMARY"
+
+if [ "$COMMENT" -eq 1 ]; then
+  if ! command -v gh > /dev/null 2>&1; then
+    echo "gh is not installed; nothing posted."
+  elif PR="$(gh pr view "$BRANCH" --json number -q .number 2>/dev/null)" && [ -n "$PR" ]; then
+    { echo "**Local CI ($MODE)** — run on the author's machine, not by hosted CI"; echo; echo '```'; cat "$SUMMARY"; echo '```'; } \
+      | gh pr comment "$PR" --body-file - > /dev/null && echo "Posted to pull request #$PR"
+  else
+    echo "No open pull request for $BRANCH; nothing posted."
+  fi
+fi
+if [ "$FAILED" -eq 0 ]; then rm -rf "$LOGDIR"; else echo "Full logs kept in $LOGDIR" >&2; fi
+exit "$FAILED"

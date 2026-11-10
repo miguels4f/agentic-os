@@ -315,7 +315,11 @@ def redraw_map(root: Path, pmap: dict) -> str:
     out = subprocess.run([node, str(scripts / "build.mjs"), str(root), "--artifact", "--no-claude-md"],
                          capture_output=True, text=True)
     if out.returncode != 0 or not (fp / "artifact.html").exists():
-        return "map: NOT redrawn (Floorplan build failed: " + (out.stdout + out.stderr).strip()[-300:] + ")"
+        # Details stay on the local console only: build output can hold local paths, and this
+        # note goes into a public pull request body.
+        print("Floorplan build output (local only):\n" + (out.stdout + out.stderr).strip()[-2000:],
+              file=sys.stderr)
+        return "map: NOT redrawn (Floorplan build failed; details in the local run log)"
     shutil.copy2(fp / "artifact.html", root / MAP_FILE)
     shutil.rmtree(src / "descriptions")
     shutil.copytree(desc, src / "descriptions")

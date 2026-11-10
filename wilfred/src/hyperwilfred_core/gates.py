@@ -127,6 +127,19 @@ def _io() -> tuple:
     return RunPaths, load_state, save_state
 
 
+SHIP_STEP_ID = "ship"
+
+
+def _require_accepted_head(repo_root: Path, run_id: str, stage: str) -> None:
+    """The ship gate only ever covers a checkout whose HEAD is exactly the accepted work."""
+    from hyperwilfred_core import engine
+
+    try:
+        engine.require_accepted_head(repo_root=repo_root, run_id=run_id, stage=stage)
+    except engine.EngineError as exc:
+        raise GateError(str(exc)) from exc
+
+
 def _now() -> datetime:
     return datetime.now(UTC)
 
@@ -185,6 +198,8 @@ def gate_open(
     RunPaths, load_state, save_state = _io()
     paths_obj = RunPaths(repo_root, run_id)
     state = load_state(paths_obj)  # ensures the run exists
+    if step_id == SHIP_STEP_ID:
+        _require_accepted_head(repo_root, run_id, "ship gate open")
 
     sensitive_paths = list(paths or [])
     classification = classify_paths(sensitive_paths) if sensitive_paths else None
@@ -353,10 +368,16 @@ def gate_approve(
             f"requested decision {decision.value!r} does not match signed token decision "
             f"{signed_decision!r}; token was not consumed"
         )
+    if gate.step_id == SHIP_STEP_ID and signed_decision == GateDecision.APPROVE.value:
+        # Checked before the token is written or consumed: once HEAD holds only accepted work
+        # again, the same signed approval can be submitted.
+        _require_accepted_head(repo_root, run_id, "ship approval")
     atomic_write_text(_decision_file(repo_root, run_id, gate_id), token)
     result = gate_status(
         repo_root=repo_root, run_id=run_id, gate_id=gate_id, public_key_path=public_key_path
     )
+    if gate_id in result.get("refused", {}):
+        raise GateError(result["refused"][gate_id])
     if result["gates"][0]["decision"] != decision.value:
         raise GateError("signed approval token was rejected")
     return result
@@ -393,8 +414,16 @@ def gate_status(*, repo_root: Path, run_id: str, gate_id: str | None = None,
             raise GateError(f"no gate {gate_id!r} for run {run_id!r}")
 
     resolved: list[dict] = []
+    refused: dict[str, str] = {}
     for gate in gates:
         if gate.status is GateStatus.PENDING:
+            refusal = _ship_approval_refusal(repo_root, run_id, gate, public_key_path)
+            if refusal is not None:
+                # Left pending and the token left unconsumed, so the same signed approval
+                # applies once HEAD holds only accepted work again.
+                refused[gate.gate_id] = refusal
+                resolved.append(gate.model_dump(mode="json"))
+                continue
             decision = _detect_human_decision(
                 repo_root, run_id, gate, public_key_path=public_key_path
             )
@@ -411,7 +440,39 @@ def gate_status(*, repo_root: Path, run_id: str, gate_id: str | None = None,
         "pending": pending,
         "blocked": run_blocked(repo_root, run_id, state),
         "run_status": state.status.value,
+        **({"refused": refused} if refused else {}),
     }
+
+
+def _ship_approval_refusal(
+    repo_root: Path, run_id: str, gate: HumanGate, public_key_path: Path | None,
+) -> str | None:
+    """Why a signed ship APPROVAL waiting for this gate cannot apply yet, without consuming it.
+
+    A commit added after the gate opened must not ride on the approval. The token is only
+    read (``consume=False``) here; a reject or modify-scope decision is never held back.
+    """
+    if gate.step_id != SHIP_STEP_ID:
+        return None
+    gates_dir = _gates_dir(repo_root, run_id)
+    decision_file = decision_file_in(gates_dir, gate.gate_id)
+    if not decision_file.exists():
+        return None
+    try:
+        decision, _by, _note = approvals.verify_and_consume(
+            gates_dir, gate.gate_id, decision_file, expected_run_id=run_id,
+            public_key_path=public_key_path, expected_action=gate.action,
+            expected_evidence=[*gate.evidence, *gate.paths], consume=False,
+        )
+    except (approvals.ApprovalError, ValueError, OSError):
+        return None  # an invalid token is handled (and stays inert) by the normal path
+    if decision != GateDecision.APPROVE.value:
+        return None
+    try:
+        _require_accepted_head(repo_root, run_id, "ship approval")
+    except GateError as exc:
+        return str(exc)
+    return None
 
 
 def _detect_human_decision(

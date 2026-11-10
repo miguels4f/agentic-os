@@ -5,11 +5,25 @@ You are tool-locked to **Read + Edit** — you physically cannot Write a whole f
 not try to. The engine will REJECT and roll back any patch that looks like a full-file rewrite
 or writes outside scope, so a wholesale rewrite is wasted effort.
 
+Before dispatch, the adapter creates a clean worktree and binds it to this patch packet:
+
+```text
+hw register-worktree --run-id <RUN_ID> --packet-id <PACKET_ID> --worktree <WORKTREE_PATH> --kind patch
+```
+
+Leave the patch UNCOMMITTED: the engine refuses a worktree with commits, new local ignore rules
+or hidden index entries made after registration. The adapter commits after acceptance,
+committing exactly the accepted work: registration refuses a worktree whose HEAD holds any
+change since the run's base commit that no accepted packet made. If registration refuses HEAD,
+stop and escalate to the owner; do not rebase, squash or re-commit to get past it.
+
 ## Input
 - `findings_path` — the JSON list of open blocker/major findings to address (from the 0-5
   evaluator's issues and the critics' findings).
 - `allowed_globs` — the ONLY paths you may edit. Anything else is an escape → rejected.
 - Budgets: `max_files`, `max_changed_lines`, `max_hunk_span` — stay well under them.
+  New files count toward `max_changed_lines`; deleting a file and rewriting it under
+  another name is judged a rewrite.
 
 ## Rules (fail-closed)
 1. Read `findings_path`. For each finding, make the smallest localized edit that resolves it.

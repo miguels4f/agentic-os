@@ -24,7 +24,7 @@ is NO code-acceptance gate — only schema validation of the findings.
 from __future__ import annotations
 
 import os
-import subprocess
+import stat
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -65,11 +65,23 @@ def _now() -> datetime:
     return datetime.now(UTC)
 
 
-def _git(root: Path, *args: str) -> tuple[int, str]:
-    out = subprocess.run(
-        ["git", "-C", str(root), *args], capture_output=True, text=True, check=False
-    )
-    return out.returncode, out.stdout
+def _git(root: Path, *args: str) -> tuple[int, list[str]]:
+    """Run one read-only git command in a reviewed repository that may be hostile.
+
+    The repository's own configuration must not be able to start a program.  This reuses the
+    review scope's hardened call (:func:`quality._scope_git`): inherited ``GIT_*`` variables are
+    dropped, the system and account-wide configuration are ignored, the file-system monitor is
+    off and every content filter the repository defines becomes a plain copy.  On top of that
+    git takes no optional lock and has no hook directory.  Output is NUL-separated (``-z``), so
+    a file name is never quoted or split.
+    """
+    try:
+        done = quality._scope_git(
+            root, "--no-optional-locks", "-c", f"core.hooksPath={os.devnull}", *args
+        )
+    except (OSError, quality.QualityError) as exc:
+        raise ReviewError(f"cannot run git safely under {root}: {exc}") from exc
+    return done.returncode, [os.fsdecode(item) for item in done.stdout.split(b"\0") if item]
 
 
 def _excluded(rel: str) -> bool:
@@ -85,14 +97,43 @@ def _rel_under(root: Path, p: Path) -> str | None:
     return Path(rel).as_posix()
 
 
+def _git_listed_file(root: Path, rel: str) -> str | None:
+    """*rel*, a path git reported, if it is a regular file reached without any link under *root*.
+
+    git lists what its index or history holds, not what is on disk now: a tracked name may be a
+    committed link, or sit below a directory that was swapped for a link.  Such a path could
+    point a critic at a file outside the reviewed repository, so it is never listed.  A path
+    that is gone (deleted) or is not a regular file is skipped too: there is nothing to review.
+    """
+    relative = Path(rel)
+    if not relative.parts or relative.is_absolute() or ".." in relative.parts:
+        return None
+    posix = relative.as_posix()
+    if _excluded(posix):
+        return None
+    current = root
+    mode = 0
+    for part in relative.parts:
+        current = current / part
+        try:
+            mode = os.lstat(current).st_mode
+        except OSError:
+            return None
+        if stat.S_ISLNK(mode):
+            return None
+    if not stat.S_ISREG(mode) or _rel_under(root, current) != posix:
+        return None
+    return posix
+
+
 # --------------------------------------------------------------------------- target resolution
 
 
 def _whole_repo_files(root: Path) -> list[str]:
     """Every reviewable file under *root* — git-tracked when possible, else a filesystem walk."""
-    rc, out = _git(root, "ls-files")
-    if rc == 0 and out.strip():
-        return [ln for ln in out.splitlines() if ln and not _excluded(ln)]
+    rc, listed = _git(root, "ls-files", "-z")
+    if rc == 0 and listed:
+        return [rel for rel in (_git_listed_file(root, name) for name in listed) if rel]
     files: list[str] = []
     for p in sorted(root.rglob("*")):
         if p.is_file():
@@ -153,17 +194,21 @@ def resolve_target(
                 f"diff range {target.diff_range!r} starts with '-' and would be read as a git "
                 "option; give a revision range such as main...HEAD"
             )
-        rc, out = _git(root, "diff", "--name-only", "--end-of-options", target.diff_range)
+        # No external diff tool, text conversion or rename detection (it reads blob contents,
+        # which a partial clone would fetch): only the names are needed.
+        rc, listed = _git(
+            root, "diff", "--name-only", "-z", "--no-ext-diff", "--no-textconv", "--no-renames",
+            "--end-of-options", target.diff_range,
+        )
         if rc != 0:
             raise ReviewError(
                 f"git diff failed for range {target.diff_range!r} under {root} — not a git "
                 "repository, or an invalid range"
             )
-        for line in out.splitlines():
-            rel = line.strip()
-            if not rel or _excluded(rel):
-                continue
-            if (root / rel).is_file():  # skip deleted files — they're gone, nothing to review
+        for name in listed:
+            # Deleted files, links and anything leading outside the root are skipped.
+            rel = _git_listed_file(root, name)
+            if rel:
                 matched.append(rel)
     else:  # PATHS
         if target.paths:

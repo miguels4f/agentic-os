@@ -15,16 +15,20 @@ their results back to the engine. The same loop runs for BUILD and IMPROVE — o
 
 ## Review provenance — no silent pass on self-review
 
-Provenance is a **declaration made when you record a result**, not a field the result file can
-claim for itself (an `author` written inside the JSON is ignored). Record a sub-agent's result with
-`--author independent`; without the flag it is recorded as `adapter`. The engine stores a hash of
-each recorded file, so a record edited, replaced or hand-dropped on disk afterwards is no longer
-trusted. This is an audited honesty protocol (the declaration is in the event log), not
-cryptographic proof — which is why the human override below needs a signed, expiring decision.
+Provenance is granted only by a **two-call, externally signed protocol**; an `author` field inside
+JSON is ignored. First record the result with `--author independent`. The engine deliberately
+stores it as `adapter` and returns a challenge and decision path. A trusted external reviewer,
+whose private key is outside the repository and unavailable to workers, reviews and signs that
+challenge. Place the token at the decision path, then repeat the same command with both
+`--author independent` and `--attestation-file <decision-path>`. The signature binds the exact
+run, iteration, packet, lens and persisted-result SHA-256. Editing the result revokes provenance.
+The trusted public key must exist at
+`~/Library/Application Support/Wilfred/review-attestation-public-key.pem`.
 
 Every evaluation and critique record carries `author`:
-- `independent` — produced by a **dispatched sub-agent** whose result you read back from disk.
-- `adapter` — written by **you** (the orchestrating session) about work you did yourself.
+- `independent` — the exact persisted result completed the external signed two-call protocol.
+- `adapter` — any result without that completed attestation, including one from a dispatched
+  sub-agent. Separation produces a review report; it does not by itself prove independence.
 
 Label honestly. The engine treats a missing `author` as `adapter` and will NOT pass the loop on
 adapter-authored review: `hw quality-gate` returns `action: "pending_independent_review"`
@@ -32,10 +36,9 @@ adapter-authored review: `hw quality-gate` returns `action: "pending_independent
 lens of the final iteration is adapter-authored or missing. That is not a failure to hide — it is
 the engine telling you the review has not really happened yet.
 
-If sub-agents cannot run (usage limit / HTTP 429): do NOT write the critiques yourself and label
-them `independent`. Record what you have (`author: adapter`), STOP at `pending_independent_review`,
-report it, and **re-dispatch the critics once limits reset**, then re-record them and re-run
-`hw quality-gate`. Only a human may accept the risk instead:
+If no trusted external signer or public key exists, keep the first-call records as `adapter`, STOP
+at `pending_independent_review`, and report the missing external action. Never use a fixture key or
+create a signer during the run. Only a human may accept the risk instead:
 `hw quality-override --run-id <RUN_ID> --by <name> --reason <why>` first creates a challenge. A
 trusted human must sign that challenge externally and place the token at the reported path; rerun
 the command to verify and consume it. The override is recorded in verify output and the ship gate.
@@ -60,7 +63,9 @@ the command to verify and consume it. The override is recorded in verify output 
       `subjective_instruction` from the status output. It writes its `SubjectiveEvaluation` JSON
       to `subjective_result_path` (a disk path — never rely on stdout). Then:
       ```
-      hw record-subjective --run-id <RUN_ID> --result-file <subjective_result_path>
+      hw record-subjective --run-id <RUN_ID> --result-file <subjective_result_path> --author independent
+      # After the external signer writes the returned decision path:
+      hw record-subjective --run-id <RUN_ID> --result-file <subjective_result_path> --author independent --attestation-file <signed-token>
       ```
       The engine recomputes `global_score = MIN(criteria)` — it ignores any aggregate the
       evaluator self-reports.
@@ -70,14 +75,15 @@ the command to verify and consume it. The override is recorded in verify output 
       ```
       Spawn one **read-only** critic sub-agent per returned packet (all in parallel), each with
       its packet's `instruction` + `lens` + `changed_paths`. Each writes a `CritiqueReport` JSON
-      to its `result_path`; record it with `--author independent` only if a sub-agent wrote it
-      (an `author` field inside the JSON is ignored). The
+      to its `result_path`; use the two-call external attestation protocol above (an `author` field
+      inside the JSON and the first `--author independent` call grant no provenance). The
       **adversarial** lens (present for objectives touching personal data, gates, approvals or
       security) must be allowed to run commands in temporary roots, not just read. For each,
       feed it back:
       ```
-      hw record-critique --run-id <RUN_ID> --packet-id <PACKET_ID> --result-file <result_path> \
-        [--author independent|adapter]
+      hw record-critique --run-id <RUN_ID> --packet-id <PACKET_ID> --result-file <result_path> --author independent
+      # After the external signer writes the returned decision path:
+      hw record-critique --run-id <RUN_ID> --packet-id <PACKET_ID> --result-file <result_path> --author independent --attestation-file <signed-token>
       ```
    4. **Ask the engine to decide:**
       ```
@@ -86,9 +92,9 @@ the command to verify and consume it. The override is recorded in verify output 
 
 3. **Act on the `quality-gate` `action`:**
    - `pass` → the engine marked the quality step done. Go back to `hw next-step`.
-   - `pending_independent_review` → the review was self-authored or incomplete. Dispatch the
-     missing sub-agent critics (re-dispatch after a limit reset), re-record them, re-run
-     `hw quality-gate`. Never relabel your own writing as independent.
+   - `pending_independent_review` → the signed protocol is incomplete. Obtain external signatures
+     for every exact result and make the second record calls. If no
+     trusted signer exists, retain the explicit pending state. Never relabel your own writing.
    - `deterministic_gate_required` → re-run `hw evaluate --step <det_gate_step>` (and patch the
      build/test first if it is red). Then re-run `hw quality-gate`.
    - `patch` → run the PATCH phase (step 4).

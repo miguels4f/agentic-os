@@ -20,6 +20,8 @@ sub-agent per packet and route every result through the engine's acceptance gate
      not a greenfield write. Prefer Edit over rewrite.
    - Writes **only** within `packet.allowed_globs`; never touches `packet.blocked_globs`.
    - Stays under `packet.max_files`, `packet.max_changed_lines`, `packet.max_hunk_span`.
+     New files count toward `max_changed_lines`; deleting a file and rewriting it under
+     another name is judged a rewrite.
    - Writes a short JSON result to `packet.result_path` (a disk path — never stdout).
 
 3. Run the engine acceptance gate per packet:
@@ -39,5 +41,10 @@ sub-agent per packet and route every result through the engine's acceptance gate
    ```
    hw complete-step --run-id <RUN_ID> --step implement
    ```
+   Commit exactly the accepted work into the run's repository. `complete-step`, the quality
+   pass and the ship gate refuse while that checkout's HEAD holds any change since the run's
+   base commit that no accepted packet made (a pull or someone else's commit during the run
+   included), generated artifacts too: produce them inside a packet. If it
+   refuses, stop and escalate to the owner with the paths it names; do not rewrite history.
 
 The next step (`regression`) proves the existing tests still pass after these changes.

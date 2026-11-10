@@ -1,7 +1,9 @@
 """Fail-closed validation for identifiers and repository-derived paths."""
 from __future__ import annotations
 
+import os
 import re
+import stat
 from pathlib import Path, PurePath
 
 _IDENTIFIER = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
@@ -44,4 +46,85 @@ def contained_path(root: Path, *parts: str, label: str = "path") -> Path:
     return candidate
 
 
-__all__ = ["contained_path", "validate_identifier", "validate_relative_path"]
+class UnstableFileError(ValueError):
+    """A path could not be read as one stable regular file reached without any symlink.
+
+    ``reason`` names the refusal (``escape``, ``symlink``, ``missing``, ``unreadable``,
+    ``not-regular``, ``unopenable``, ``replaced`` or ``changed``) so each caller can translate it
+    into its own error type and wording at its boundary.
+    """
+
+    def __init__(self, reason: str, message: str) -> None:
+        super().__init__(message)
+        self.reason = reason
+
+
+def _identity(value: os.stat_result) -> tuple[int, ...]:
+    return (
+        value.st_dev, value.st_ino, value.st_mode, value.st_size,
+        value.st_mtime_ns, value.st_ctime_ns,
+    )
+
+
+def stable_regular_bytes(
+    path: Path, *, root: Path | None = None, label: str = "file", allow_missing: bool = False,
+) -> bytes | None:
+    """Read one regular file without following links and reject a concurrent replacement.
+
+    Every component below *root* (default: the file's own directory) must be reached without
+    crossing a symlink; internal, external, broken and cyclic links are all refused. The file is
+    opened with ``O_NOFOLLOW`` and its device, inode, mode, size, mtime and ctime must stay the
+    same from the first ``lstat`` through the read to a final ``lstat``. Every refusal raises
+    :class:`UnstableFileError`; with *allow_missing* an absent file returns ``None`` instead.
+    """
+    absolute_root = Path(os.path.abspath(root or path.parent))
+    absolute_path = Path(os.path.abspath(path))
+    try:
+        relative = absolute_path.relative_to(absolute_root)
+    except ValueError as exc:
+        raise UnstableFileError("escape", f"{label} escapes its trusted root") from exc
+    candidate = absolute_root
+    try:
+        for component in relative.parts:
+            candidate /= component
+            if stat.S_ISLNK(os.lstat(candidate).st_mode):
+                raise UnstableFileError("symlink", f"{label} contains symlink {candidate}")
+        before = os.lstat(absolute_path)
+    except FileNotFoundError:
+        if allow_missing:
+            return None
+        raise UnstableFileError("missing", f"{label} is missing") from None
+    except OSError as exc:
+        raise UnstableFileError("unreadable", f"{label} cannot be inspected safely") from exc
+    if not stat.S_ISREG(before.st_mode):
+        raise UnstableFileError("not-regular", f"{label} is not a regular file")
+    try:
+        descriptor = os.open(absolute_path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
+    except OSError as exc:
+        raise UnstableFileError("unopenable", f"{label} cannot be opened safely") from exc
+    try:
+        opened = os.fstat(descriptor)
+        if (opened.st_dev, opened.st_ino) != (before.st_dev, before.st_ino):
+            raise UnstableFileError("replaced", f"{label} changed before it was opened")
+        chunks: list[bytes] = []
+        while chunk := os.read(descriptor, 64 * 1024):
+            chunks.append(chunk)
+        after = os.fstat(descriptor)
+    finally:
+        os.close(descriptor)
+    try:
+        current = os.lstat(absolute_path)
+    except OSError as exc:
+        raise UnstableFileError("changed", f"{label} changed while it was read") from exc
+    if not _identity(before) == _identity(opened) == _identity(after) == _identity(current):
+        raise UnstableFileError("changed", f"{label} changed while it was read")
+    return b"".join(chunks)
+
+
+__all__ = [
+    "UnstableFileError",
+    "contained_path",
+    "stable_regular_bytes",
+    "validate_identifier",
+    "validate_relative_path",
+]

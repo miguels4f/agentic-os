@@ -12,12 +12,16 @@ promotion and independent-review attestation need one in every case.
 from __future__ import annotations
 
 import base64
+import fcntl
 import hashlib
 import hmac
 import json
 import os
 import secrets
+import stat
+import subprocess
 import sys
+from collections.abc import Iterable
 from datetime import UTC, datetime, timedelta
 from functools import wraps
 from pathlib import Path
@@ -27,25 +31,41 @@ from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 
+from hyperwilfred_core import path_safety
 from hyperwilfred_core.path_safety import validate_identifier
 from hyperwilfred_core.run_store import atomic_write_text
 
 CHALLENGE_SCHEMA = "wilfred-approval-challenge/v1"
 DECISION_SCHEMA = "wilfred-signed-decision/v1"
-DEFAULT_PUBLIC_KEY_PATH = (
-    Path.home() / "Library" / "Application Support" / "Wilfred" / "approval-public-key.pem"
-)
-DEFAULT_REVIEW_ATTESTATION_PUBLIC_KEY_PATH = (
-    Path.home()
-    / "Library"
-    / "Application Support"
-    / "Wilfred"
-    / "review-attestation-public-key.pem"
+_KEY_DIRECTORY = ("Library", "Application Support", "Wilfred")
+_NO_ACCOUNT_HOME = Path(os.sep, "wilfred-account-home-unavailable")
+
+
+def _account_home() -> Path:
+    """Home directory of the account running the engine, read from the account database.
+
+    The ``HOME`` variable is never consulted: whoever starts the process chooses it. Without
+    a usable account record the result is a marker location that the key loader refuses, so
+    every default key is unavailable instead of being looked up somewhere else.
+    """
+    try:
+        import pwd
+
+        home = Path(pwd.getpwuid(os.getuid()).pw_dir)
+    except (ImportError, AttributeError, KeyError, OSError, TypeError, ValueError):
+        return _NO_ACCOUNT_HOME
+    return home if home.is_absolute() else _NO_ACCOUNT_HOME
+
+
+# Read by attribute at call time; no option and no environment variable selects a key.
+DEFAULT_PUBLIC_KEY_PATH = _account_home().joinpath(*_KEY_DIRECTORY, "approval-public-key.pem")
+DEFAULT_REVIEW_ATTESTATION_PUBLIC_KEY_PATH = _account_home().joinpath(
+    *_KEY_DIRECTORY, "review-attestation-public-key.pem"
 )
 POLICY_DECISION_SCHEMA = "wilfred-policy-decision/v1"
 POLICY_AUTO_VALUE = "auto-except-ship-and-promote"
 POLICY_APPROVER = "policy:auto"
-DEFAULT_POLICY_PATH = Path.home() / "Library" / "Application Support" / "Wilfred" / "policy.json"
+DEFAULT_POLICY_PATH = _account_home().joinpath(*_KEY_DIRECTORY, "policy.json")  # never via HOME
 # The only challenge purposes whose human signature the policy switch may replace. Callers must
 # also opt in per call (``policy_eligible``). Absent on purpose: ``protected-action`` (every run
 # gate — the gate record that tells a ship gate from a minor one is not itself signed, so none
@@ -81,7 +101,28 @@ def canonical_bytes(value: dict[str, Any]) -> bytes:
 
 
 def digest(value: object) -> str:
+    """Return the sha256 hex digest of *value* in its canonical JSON form."""
     return hashlib.sha256(canonical_bytes({"value": value})).hexdigest()
+
+
+def _validate_challenge_coherence(challenge: dict[str, Any]) -> None:
+    """Reject malformed or signer-visible fields that disagree with their digests."""
+    action = challenge.get("action")
+    evidence = challenge.get("evidence")
+    action_sha256 = challenge.get("action_sha256")
+    evidence_sha256 = challenge.get("evidence_sha256")
+    if not isinstance(action, str):
+        raise ApprovalError("approval challenge action must be a string")
+    if not isinstance(evidence, list) or any(not isinstance(item, str) for item in evidence):
+        raise ApprovalError("approval challenge evidence must be a list of strings")
+    if not isinstance(action_sha256, str) or not hmac.compare_digest(
+        action_sha256, digest(action)
+    ):
+        raise ApprovalError("approval challenge action does not match its digest")
+    if not isinstance(evidence_sha256, str) or not hmac.compare_digest(
+        evidence_sha256, digest(sorted(evidence))
+    ):
+        raise ApprovalError("approval challenge evidence does not match its digest")
 
 
 def challenge_file(gates_dir: Path, gate_id: str) -> Path:
@@ -90,8 +131,35 @@ def challenge_file(gates_dir: Path, gate_id: str) -> Path:
 
 
 def consumed_file(gates_dir: Path, gate_id: str) -> Path:
+    """Return the replay-receipt path written when *gate_id*'s signed decision is consumed."""
     validate_identifier(gate_id, label="gate_id")
     return gates_dir / f"{gate_id}.decision.consumed"
+
+
+def atomic_create_text(path: Path, value: str) -> None:
+    """Create *path* exactly once, durably, never exposing partial bytes; exists -> refused."""
+    temporary = path.with_name(f".{path.name}.{secrets.token_hex(8)}.tmp")
+    descriptor = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    try:
+        with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
+            stream.write(value)
+            stream.flush()
+            os.fsync(stream.fileno())
+        try:
+            os.link(temporary, path)
+        except FileExistsError as exc:
+            raise ApprovalError("signed decision replay detected") from exc
+        directory = os.open(path.parent, os.O_RDONLY)
+        try:
+            os.fsync(directory)
+        finally:
+            os.close(directory)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+# Name through which verify_and_consume writes its replay receipt (an interception seam).
+_atomic_create_text = atomic_create_text
 
 
 def _serialized(operation):
@@ -129,6 +197,10 @@ def issue_challenge(
     ttl_seconds: int = 900,
     reuse_pending: bool = False,
 ) -> dict[str, Any]:
+    if not isinstance(action, str):
+        raise ApprovalError("approval challenge action must be a string")
+    if not isinstance(evidence, list) or any(not isinstance(item, str) for item in evidence):
+        raise ApprovalError("approval challenge evidence must be a list of strings")
     validate_identifier(run_id, label="run_id")
     validate_identifier(gate_id, label="gate_id")
     issued = _now()
@@ -180,6 +252,7 @@ def load_challenge(gates_dir: Path, gate_id: str) -> dict[str, Any]:
         raise ApprovalError("approval challenge is missing or corrupt") from exc
     if not isinstance(value, dict) or value.get("schema_version") != CHALLENGE_SCHEMA:
         raise ApprovalError("unsupported approval challenge schema")
+    _validate_challenge_coherence(value)
     return value
 
 
@@ -194,6 +267,7 @@ def build_decision_payload(
     public_key_path: Path | None = None, ttl_seconds: int = 300,
 ) -> dict[str, Any]:
     """Build the bytes an external trusted signer signs; this function never signs."""
+    _validate_challenge_coherence(challenge)
     issued = _now()
     challenge_expiry = _parse_time(challenge.get("expires_at"), label="challenge expiry")
     expiry = min(challenge_expiry, issued + timedelta(seconds=ttl_seconds))
@@ -314,15 +388,9 @@ def _write_policy_decision(gates_dir: Path, gate_id: str, policy: dict[str, str]
 
 
 def _consume(gates_dir: Path, gate_id: str, token: dict[str, Any]) -> None:
-    consumed = consumed_file(gates_dir, gate_id)
-    try:
-        descriptor = os.open(consumed, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
-    except FileExistsError as exc:
-        raise ApprovalError("signed decision replay detected") from exc
-    with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
-        stream.write(hashlib.sha256(canonical_bytes(token)).hexdigest() + "\n")
-        stream.flush()
-        os.fsync(stream.fileno())
+    _atomic_create_text(
+        consumed_file(gates_dir, gate_id), hashlib.sha256(canonical_bytes(token)).hexdigest() + "\n"
+    )
 
 
 def _accept_policy_decision(
@@ -368,15 +436,198 @@ def _accept_policy_decision(
     return "approve", POLICY_APPROVER, note
 
 
-def _load_public_key(path: Path | None) -> Ed25519PublicKey:
-    selected = (path or DEFAULT_PUBLIC_KEY_PATH).expanduser().resolve()
+def _absolute_key_path(path: Path) -> Path:
+    """Absolute form of *path*; a path needing user expansion is refused (it follows ``HOME``)."""
+    path = Path(path)
+    if path.parts and path.parts[0].startswith("~"):
+        raise ApprovalError(f"trusted public key path must not need user expansion: {path}")
+    return Path(os.path.abspath(path))
+
+
+def _require_account_custody(selected: Path) -> None:
+    """Refuse a key file or key directory owned by another non-root account."""
+    if not hasattr(os, "getuid"):
+        return
     try:
-        key = serialization.load_pem_public_key(selected.read_bytes())
-    except (OSError, ValueError) as exc:
+        entries = (os.stat(selected.parent), os.lstat(selected))
+    except OSError as exc:
+        raise ApprovalError(f"trusted approval public key unavailable at {selected}") from exc
+    if any(entry.st_uid not in {0, os.getuid()} for entry in entries):
+        raise ApprovalError(f"trusted approval public key is not owned by this account: {selected}")
+
+
+def _load_public_key(path: Path | None) -> Ed25519PublicKey:
+    selected = _absolute_key_path(path or DEFAULT_PUBLIC_KEY_PATH)
+    if selected.is_relative_to(_NO_ACCOUNT_HOME):
+        raise ApprovalError("trusted approval public key unavailable: no account record")
+    try:
+        raw = path_safety.stable_regular_bytes(selected, label="trusted approval public key")
+    except path_safety.UnstableFileError as exc:
+        if exc.reason in {"symlink", "not-regular"}:
+            raise ApprovalError(
+                f"trusted approval public key is not a regular file: {selected}"
+            ) from exc
+        if exc.reason in {"replaced", "changed"}:
+            raise ApprovalError(str(exc)) from exc
+        raise ApprovalError(f"trusted approval public key unavailable at {selected}") from exc
+    except OSError as exc:
+        # The shared reader maps inspection and open failures to its own refusal type, but an
+        # error raised by the read itself arrives as a plain OSError; keep this boundary's type.
+        raise ApprovalError(f"trusted approval public key unavailable at {selected}") from exc
+    assert raw is not None
+    _require_account_custody(selected)
+    try:
+        key = serialization.load_pem_public_key(raw)
+    except ValueError as exc:
         raise ApprovalError(f"trusted approval public key unavailable at {selected}") from exc
     if not isinstance(key, Ed25519PublicKey):
         raise ApprovalError("trusted approval key must be Ed25519")
     return key
+
+
+def _canonical_existing_path(path: Path) -> Path:
+    """Ask the kernel for an opened file's real path, including macOS /.vol aliases."""
+    absolute = _absolute_key_path(path)
+    try:
+        descriptor = os.open(absolute, os.O_RDONLY)
+    except FileNotFoundError:
+        return Path(os.path.realpath(absolute))
+    except OSError as exc:
+        raise ApprovalError(f"review key path cannot be inspected safely: {absolute}") from exc
+    try:
+        if sys.platform == "darwin":
+            # F_GETPATH returns the path of the opened inode, not the caller's spelling.
+            # In particular, /.vol/<device>/<inode> maps back to its repository path.
+            raw = fcntl.fcntl(descriptor, 50, bytes(1024))
+            if not isinstance(raw, bytes):
+                raise ApprovalError("review key path has no kernel identity")
+            canonical = os.fsdecode(raw.split(b"\0", 1)[0])
+            if not canonical or not Path(canonical).is_absolute():
+                raise ApprovalError("review key path has no kernel identity")
+            return Path(canonical)
+        return Path(os.path.realpath(absolute))
+    except OSError as exc:
+        raise ApprovalError(f"review key path has no kernel identity: {absolute}") from exc
+    finally:
+        os.close(descriptor)
+
+
+def _registered_work_trees(root: Path) -> set[Path]:
+    """Read Git's shared worktree registry, independent of a worker's mutable .git marker."""
+    clean_env = {name: value for name, value in os.environ.items()
+                 if not name.startswith("GIT_")}
+    clean_env.update(GIT_CONFIG_GLOBAL=os.devnull, GIT_CONFIG_NOSYSTEM="1")
+    result = subprocess.run(
+        ["git", "-C", str(root), "worktree", "list", "--porcelain"],
+        capture_output=True, text=True, check=False, env=clean_env,
+    )
+    if result.returncode:
+        return set()  # An invalid planted .git entry cannot hide an outer repository.
+    trees: set[Path] = set()
+    for line in result.stdout.splitlines():
+        if line.startswith("worktree "):
+            trees.add(_canonical_existing_path(Path(line.removeprefix("worktree "))))
+    return trees
+
+
+def _key_repository_family(candidate: Path) -> set[Path]:
+    """Every repository location the key's own surroundings claim to belong to.
+
+    Read from the key's side: each enclosing directory holding a ``.git`` entry contributes
+    itself, the worktrees its repository registers, and the Git directory a ``.git`` marker
+    file points at. A linked worktree is therefore recognised from its own marker even when
+    its entry in the repository's registry was rewritten, renamed or removed, and a run rooted
+    in a worktree whose marker was removed is recognised from the registry of the key's side.
+    """
+    family: set[Path] = set()
+    for ancestor in candidate.parents:
+        marker = ancestor / ".git"
+        if not os.path.lexists(marker):
+            continue
+        family.add(_canonical_existing_path(ancestor))
+        family.update(_registered_work_trees(ancestor))
+        try:
+            if not stat.S_ISREG(os.lstat(marker).st_mode):
+                continue
+            text = marker.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        for line in text.splitlines():
+            if not line.startswith("gitdir:"):
+                continue
+            pointer = Path(line.removeprefix("gitdir:").strip())
+            if not pointer.is_absolute():
+                pointer = ancestor / pointer
+            pointer = _canonical_existing_path(pointer)
+            family.add(pointer)
+            try:
+                common = Path((pointer / "commondir").read_text(encoding="utf-8").strip())
+            except (OSError, UnicodeDecodeError):
+                continue
+            if not common.is_absolute():
+                common = pointer / common
+            family.add(_canonical_existing_path(common))
+    return family
+
+
+def _same_or_nested(first: Path, second: Path) -> bool:
+    if first.is_relative_to(second) or second.is_relative_to(first):
+        return True
+    try:
+        return first.samefile(second)
+    except OSError:
+        return False
+
+
+def require_external_key_location(key: Path, *, excluded_roots: Iterable[Path] = ()) -> Path:
+    """Require a review key outside the target, its repository and linked worktrees.
+
+    The opened file's kernel path catches macOS inode aliases. The relation to the repository
+    is established from both sides: the fence's Git registry catches a linked worker whose
+    .git marker is deleted or replaced, and the key's own surroundings catch a worker whose
+    registry entry was rewritten and a run rooted in a worktree whose marker was removed.
+    """
+    absolute = _absolute_key_path(key)
+    canonical = _canonical_existing_path(absolute)
+    try:
+        if os.stat(absolute).st_nlink > 1:
+            raise ApprovalError(f"review key must not have other hard links: {absolute}")
+    except FileNotFoundError:
+        pass  # The key loader will refuse an absent key.
+    except OSError as exc:
+        raise ApprovalError(f"review key path cannot be inspected safely: {absolute}") from exc
+    fences: set[Path] = set()
+    for root in excluded_roots:
+        given = _absolute_key_path(Path(root))
+        for form in (given, _canonical_existing_path(given)):
+            fences.add(form)
+            # Continue beyond a planted nested .git: the outer repository still owns the key.
+            for ancestor in (form, *form.parents):
+                if os.path.lexists(ancestor / ".git"):
+                    fences.add(_canonical_existing_path(ancestor))
+                    fences.update(_registered_work_trees(ancestor))
+    for candidate in (absolute, canonical):
+        if any(part.casefold() == ".hw" for part in candidate.parts):
+            raise ApprovalError(f"review key must not live inside a .hw directory: {candidate}")
+        for fence in fences:
+            if candidate.is_relative_to(fence):
+                raise ApprovalError(
+                    f"review key must live outside the repository and product: {candidate}"
+                )
+            for ancestor in candidate.parents:
+                try:
+                    if ancestor.samefile(fence):
+                        raise ApprovalError(
+                            f"review key must live outside the repository and product: {candidate}"
+                        )
+                except OSError:
+                    continue
+        for member in _key_repository_family(candidate):
+            if any(_same_or_nested(member, fence) for fence in fences):
+                raise ApprovalError(
+                    f"review key must live outside the repository and product: {candidate}"
+                )
+    return canonical
 
 
 @_serialized
@@ -471,7 +722,8 @@ __all__ = [
     "ApprovalError", "DEFAULT_POLICY_PATH", "DEFAULT_PUBLIC_KEY_PATH",
     "DEFAULT_REVIEW_ATTESTATION_PUBLIC_KEY_PATH", "POLICY_APPROVER", "POLICY_AUTO_VALUE",
     "POLICY_DECISION_SCHEMA", "POLICY_ELIGIBLE_PURPOSES", "active_policy",
-    "build_decision_payload", "canonical_bytes",
-    "challenge_file", "issue_challenge", "load_challenge", "policy_approve", "policy_provenance",
-    "public_key_fingerprint", "verify_and_consume", "verify_consumed_receipt",
+    "atomic_create_text", "build_decision_payload", "canonical_bytes", "consumed_file",
+    "digest", "require_external_key_location", "challenge_file", "issue_challenge",
+    "load_challenge", "policy_approve", "policy_provenance", "public_key_fingerprint",
+    "verify_and_consume", "verify_consumed_receipt",
 ]

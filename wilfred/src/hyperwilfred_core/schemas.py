@@ -509,10 +509,9 @@ class CriticSeverity(StrEnum):
 class ReviewAuthor(StrEnum):
     """Who produced an evaluation/critique record (review provenance, fail-closed).
 
-    ``independent`` = a dispatched sub-agent whose result the adapter read back from disk.
-    ``adapter`` = written by the orchestrating session about its own work. A record with no
-    ``author`` field (older run state) is loaded as ``adapter`` — missing provenance never
-    counts as independent.
+    ``independent`` = an exact persisted result whose external attestation transaction completed.
+    ``adapter`` = every missing or unverified provenance value, including dispatched sub-agent
+    output. Older records without ``author`` therefore fail closed as adapter-authored.
     """
 
     INDEPENDENT = "independent"
@@ -691,6 +690,16 @@ class IndependentReviewOverride(BaseModel):
     claimed_reason: str = ""
 
 
+class ReviewTrustAnchor(BaseModel):
+    """Immutable facts rechecked before a recorded review is trusted again."""
+
+    model_config = ConfigDict(extra="forbid", validate_assignment=True)
+
+    gate_id: str
+    external_key_fingerprint: str = Field(pattern=r"^[0-9a-f]{64}$")
+    transaction_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+
+
 class QualityLoopState(BaseModel):
     """The quality loop's on-disk state, embedded in :class:`RunState`.
 
@@ -725,6 +734,9 @@ class QualityLoopState(BaseModel):
     # Signed execution attestations accepted for those records.  The value is the challenge id;
     # provenance re-verifies its signature, exact record hash, and consumption receipt.
     review_attestations: dict[str, str] = Field(default_factory=dict)
+    # Trust-root and finalized-transaction facts captured at acceptance.  Unlike the legacy
+    # gate-id map above, provenance can use these anchors to detect a coherent artifact rewrite.
+    review_trust_anchors: dict[str, ReviewTrustAnchor] = Field(default_factory=dict)
 
 
 # --------------------------------------------------------------------------- pipeline / run state
@@ -759,6 +771,31 @@ class RunState(BaseModel):
     # HEAD of the repo when `hw plan` ran. The known-failures declaration is read AS COMMITTED
     # here, so nothing done during the run can widen it (see known_failures.py).
     base_commit: str | None = None
+    # Complete baseline bytes are pinned outside the mutable witness payload.  Older runs load
+    # with no pin and cannot acquire one after implementation starts.
+    regression_baseline_sha256: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
+    # Pin of the plan-time record of the tests the base commit collects (``hw plan`` of an
+    # IMPROVE run in git). Capture refuses without it: a test that vanished from collection
+    # since planning would otherwise be neither passing nor recorded as not passing.
+    base_collection_sha256: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
+    # Durable provenance for both a local capture and an inherited witness.  The source path is
+    # repository-relative so moving a checkout does not invalidate the record.
+    regression_baseline_source_run_id: str | None = None
+    regression_baseline_source_file: str | None = None
+    regression_baseline_recorded_at: datetime | None = None
+    # Runs created without an explicit product directory historically received an automatic
+    # ``products/<run_id>`` placeholder even when their real target already lived elsewhere in
+    # the repository.  The first authorised deterministic call pins that exact repo-relative
+    # target here; later calls cannot switch to a different (decoy) subtree.
+    deterministic_target: str | None = None
+    # Once a modern deterministic evidence pair has existed, deleting both files must not
+    # silently re-enable the historical status-only review scope.
+    deterministic_evidence_emitted: bool = False
+    # Engine-written snapshot anchor: the loose scope file cannot be rewritten to revive a
+    # stale deterministic decision. Old state loads without it and fails closed for modern gates.
+    deterministic_scope_sha256: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
+    # Engine-registered packet worktrees; old run state loads with no registrations.
+    packet_worktrees: dict[str, dict[str, str | int]] = Field(default_factory=dict)
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 

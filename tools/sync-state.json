@@ -266,7 +266,7 @@
  },
  "wilfred/docs/agent-foundry/cli.md": {
   "origin": "wilfred:docs/agent-foundry/cli.md",
-  "source_sha": "5ed282f1ad1071916d909a2b58916ec3d060cda98ae19fc280ca3604f61b6c9d",
+  "source_sha": "0927e40e3809d1e416fc17cf6377a1846499d801b20778fbc7fb107d1195a504",
   "mode": "auto"
  },
  "wilfred/docs/agent-foundry/evidence.md": {
@@ -341,7 +341,7 @@
  },
  "wilfred/skills/hyperwilfred-build/SKILL.md": {
   "origin": "wilfred:skills/hyperwilfred-build/SKILL.md",
-  "source_sha": "afe454a1779f63e4596229558e1608d2c75c764db07bf556ab680ac368df6015",
+  "source_sha": "5282613736e7b7d7b8b789ddb82c3f421d18b7661715d01c6a6be0c31e3d59fc",
   "mode": "auto"
  },
  "wilfred/skills/hyperwilfred-review/SKILL.md": {
@@ -356,12 +356,12 @@
  },
  "wilfred/src/hyperwilfred_core/approvals.py": {
   "origin": "wilfred:src/hyperwilfred_core/approvals.py",
-  "source_sha": "7248773c66c2fef4d05903ff8049fcfb7869051e06484644c6fd27c561a8176d",
+  "source_sha": "1e9f49637797ec7c5191d8e88ae44900fabb2a9dc6aee58296f2e880f8822085",
   "mode": "auto"
  },
  "wilfred/src/hyperwilfred_core/cli.py": {
   "origin": "wilfred:src/hyperwilfred_core/cli.py",
-  "source_sha": "d9c55f966f1fe996e1ae4df0320e16a51e92a778e10fcff96a91f20b82c6753f",
+  "source_sha": "36d5f11a09bb57bf7de77eb023df9b3ebb68920d5518031c6c11de366c877239",
   "mode": "auto"
  },
  "wilfred/src/hyperwilfred_core/codex.py": {
@@ -401,7 +401,7 @@
  },
  "wilfred/src/hyperwilfred_core/command_center/collect_runs.py": {
   "origin": "wilfred:src/hyperwilfred_core/command_center/collect_runs.py",
-  "source_sha": "33714736f3eb7357d023d4e4f46dabcf0d244f1f32bf90f7de52c95b42364631",
+  "source_sha": "3c02f7c6389dba35141ef196006834012f45774d63282181b14a76bbefb230ec",
   "mode": "auto"
  },
  "wilfred/src/hyperwilfred_core/command_center/gitconfig.py": {
@@ -454,6 +454,11 @@
   "source_sha": "16308dc34f0d57035c857c3838a96bc95aced4f41bb3704a86d8e2497128c0c7",
   "mode": "auto"
  },
+ "wilfred/src/hyperwilfred_core/control_evolution.py": {
+  "origin": "wilfred:src/hyperwilfred_core/control_evolution.py",
+  "source_sha": "43507d9e06e8908e68f68d73dfff6589ab469de84931c982ad82343735fd2b74",
+  "mode": "auto"
+ },
  "wilfred/src/hyperwilfred_core/cost.py": {
   "origin": "wilfred:src/hyperwilfred_core/cost.py",
   "source_sha": "45032ec8b302921b4759f4caac530c5f1f1c6366ddb5dcf8006b20dda0c4b3a5",
@@ -466,7 +471,7 @@
  },
  "wilfred/src/hyperwilfred_core/engine.py": {
   "origin": "wilfred:src/hyperwilfred_core/engine.py",
-  "source_sha": "cdc7bae019b6218e6ef9a623956d4b1b13dec37fc3e572015ab9a4ca67f5cd12",
+  "source_sha": "c7ec7e8affc01c7adff6f89966d9914822d4c010b66398dd37a2b620a04da93b",
   "mode": "auto"
  },
  "wilfred/src/hyperwilfred_core/escalation.py": {
@@ -511,7 +516,7 @@
  },
  "wilfred/src/hyperwilfred_core/evaluators/code/pytest_evaluator.py": {
   "origin": "wilfred:src/hyperwilfred_core/evaluators/code/pytest_evaluator.py",
-  "source_sha": "e25ac1d828b6e7fa82cc04338646e1966ff7f4dab4e75517296c901183599cf7",
+  "source_sha": "eb4cdd2c6f45fe0f1363694e415054a7a68e4b8dc848bdb954bb7872f710609b",
   "mode": "auto"
  },
  "wilfred/src/hyperwilfred_core/evaluators/code/ruff_evaluator.py": {
@@ -616,12 +621,12 @@
  },
  "wilfred/src/hyperwilfred_core/gates.py": {
   "origin": "wilfred:src/hyperwilfred_core/gates.py",
-  "source_sha": "46361fad0ace53099a3633c2a7f89ac6ab15437f3c92c318e0892f305bd7260f",
+  "source_sha": "bb8333cbbbd53ffbb9ce4aff5dc29507097da9e0bd26715ddc5f24e8dec2f368",
   "mode": "auto"
  },
  "wilfred/src/hyperwilfred_core/guardrails.py": {
   "origin": "wilfred:src/hyperwilfred_core/guardrails.py",
-  "source_sha": "8b40d455045eae3b85f41b1dd6df19be9513d502e7193a199ca8e3546e0aa8cb",
+  "source_sha": "e5a6cac0d3d20e428ff26de341f8fcf3fcdf0d315a704b65cb1b74dd6cf97042",
   "mode": "auto"
  },
  "wilfred/src/hyperwilfred_core/hooks/__init__.py": {
@@ -636,12 +641,12 @@
  },
  "wilfred/src/hyperwilfred_core/known_failures.py": {
   "origin": "wilfred:src/hyperwilfred_core/known_failures.py",
-  "source_sha": "887657fa399e408368c4d809b7d1057716ef890f377a677e209c2e4ebb0c088e",
+  "source_sha": "65ecea4c69b7f8aac781d544c9800d19ae869deee537c04dba55a74529238050",
   "mode": "auto"
  },
  "wilfred/src/hyperwilfred_core/learning.py": {
   "origin": "wilfred:src/hyperwilfred_core/learning.py",
-  "source_sha": "29fd4fa0274d3e37572adaf13e1ecc647ac304e8a2a4e73399f816f544743a51",
+  "source_sha": "36830234e4482427a0c3a7d2e7f40ae3ad817ff8a364249d8d771d4c5ca2da2c",
   "mode": "auto"
  },
  "wilfred/src/hyperwilfred_core/live_demo.py": {
@@ -656,7 +661,7 @@
  },
  "wilfred/src/hyperwilfred_core/path_safety.py": {
   "origin": "wilfred:src/hyperwilfred_core/path_safety.py",
-  "source_sha": "72cbaac5c0e0f8a7cee5955fa7992a20ca73df9dd7ba28b88c3240fa15016999",
+  "source_sha": "c372968064326e461309fde744335d345bc7682118aee8de10ba7e1ba891ffef",
   "mode": "auto"
  },
  "wilfred/src/hyperwilfred_core/pipeline.py": {
@@ -676,12 +681,12 @@
  },
  "wilfred/src/hyperwilfred_core/quality.py": {
   "origin": "wilfred:src/hyperwilfred_core/quality.py",
-  "source_sha": "2add7da8d4fe6e6db85613f3520956068f3c5c7cf3e5352d2f8b884f6336f044",
+  "source_sha": "e254c44eefec0c4e7d53e4262bef42cb02769e4e46bb4f6fcd3ecf83dec5b13a",
   "mode": "auto"
  },
  "wilfred/src/hyperwilfred_core/regression.py": {
   "origin": "wilfred:src/hyperwilfred_core/regression.py",
-  "source_sha": "48ec32d15fe2ae9dfbd0cc4b161e8a29e37bb99a25c07bc6084042f3d9917864",
+  "source_sha": "4b06c2482490bf68233e5fe8ad7b1e8bebf280f20ff5c06ebbf628df741bcc9d",
   "mode": "auto"
  },
  "wilfred/src/hyperwilfred_core/reproducibility.py": {
@@ -696,7 +701,7 @@
  },
  "wilfred/src/hyperwilfred_core/review.py": {
   "origin": "wilfred:src/hyperwilfred_core/review.py",
-  "source_sha": "e8f3493aaca5ffec3c71ea57183e92801d781434e2868582ac60ef9ccdc6db06",
+  "source_sha": "8f3f1ce6476109f4a76274a86257bf8f792d02312131ce58f68c617a9d95180e",
   "mode": "auto"
  },
  "wilfred/src/hyperwilfred_core/run_store.py": {
@@ -706,7 +711,7 @@
  },
  "wilfred/src/hyperwilfred_core/schemas.py": {
   "origin": "wilfred:src/hyperwilfred_core/schemas.py",
-  "source_sha": "7b0096a77b73af69cceffc1fa9b80d66b38f56060993cf570321f0f04e00964f",
+  "source_sha": "a90fea2c77eb38fcdc4a90987e4f12c08e038c052b99521e451d31712b1844bf",
   "mode": "auto"
  },
  "wilfred/src/hyperwilfred_core/severity_floor.py": {
@@ -731,7 +736,7 @@
  },
  "wilfred/src/hyperwilfred_core/steps/build/04_implement.md": {
   "origin": "wilfred:src/hyperwilfred_core/steps/build/04_implement.md",
-  "source_sha": "32a1b566a7f6c92beaa34b6da14152c6bf1085e5f5f97e44f4d0fd23e9c04d6c",
+  "source_sha": "e485c478fedb7b911ff20736ee399dabb27ab31b955d88a11274d34a6fa7ba97",
   "mode": "auto"
  },
  "wilfred/src/hyperwilfred_core/steps/build/05_evaluate.md": {
@@ -741,7 +746,7 @@
  },
  "wilfred/src/hyperwilfred_core/steps/build/06_verify.md": {
   "origin": "wilfred:src/hyperwilfred_core/steps/build/06_verify.md",
-  "source_sha": "0209e8723dfd3b564b3f1356e429dc279b0a81ed709d2aba32407ffa76262b58",
+  "source_sha": "70e952b435f861a4e9e5ceb16e4b79fca31027f59d719bc6d2943459efa4109c",
   "mode": "auto"
  },
  "wilfred/src/hyperwilfred_core/steps/build/07_ship.md": {
@@ -751,7 +756,7 @@
  },
  "wilfred/src/hyperwilfred_core/steps/improve/01_comprehend.md": {
   "origin": "wilfred:src/hyperwilfred_core/steps/improve/01_comprehend.md",
-  "source_sha": "0545410f755074d1992791d1d975aeb59f1108abd8c049ed8a645bef058e75f4",
+  "source_sha": "0282fb42d4143c844d2f1feaac93eb7c70785eb2912cf02c7fccf0cbe001f1c8",
   "mode": "auto"
  },
  "wilfred/src/hyperwilfred_core/steps/improve/02_locate.md": {
@@ -761,7 +766,7 @@
  },
  "wilfred/src/hyperwilfred_core/steps/improve/03_implement.md": {
   "origin": "wilfred:src/hyperwilfred_core/steps/improve/03_implement.md",
-  "source_sha": "25a6fed58c75e9c5584f0d2b09cb0b520ee17271b9564b9c150da5ea82e83ca3",
+  "source_sha": "0f058d44a003caaa071b479d206ee866848b77ce0f31b4ccb462dbdd679ece7d",
   "mode": "auto"
  },
  "wilfred/src/hyperwilfred_core/steps/improve/04_regression.md": {
@@ -776,7 +781,7 @@
  },
  "wilfred/src/hyperwilfred_core/steps/quality/00_loop.md": {
   "origin": "wilfred:src/hyperwilfred_core/steps/quality/00_loop.md",
-  "source_sha": "ef3c7d2b2ccea3a033f6ae8b8abd90a685ab0c03d1cbc9020d9c10503a372dfa",
+  "source_sha": "129b2ec5f70dbd9441726b40fe31883e087d91e06dd5bfc1ec90777fb1a793d8",
   "mode": "auto"
  },
  "wilfred/src/hyperwilfred_core/steps/quality/01_subjective.md": {
@@ -791,12 +796,12 @@
  },
  "wilfred/src/hyperwilfred_core/steps/quality/02b_adversarial.md": {
   "origin": "wilfred:src/hyperwilfred_core/steps/quality/02b_adversarial.md",
-  "source_sha": "1799cf4eb15eaff55937163d241abb87da2523c27379ca97daa6bc9c739f43b5",
+  "source_sha": "5430f85a06794b171d443b6f0876e5cd5ae244eb71d6a5cefa13700bb75805a2",
   "mode": "auto"
  },
  "wilfred/src/hyperwilfred_core/steps/quality/03_patch.md": {
   "origin": "wilfred:src/hyperwilfred_core/steps/quality/03_patch.md",
-  "source_sha": "a9a1032c0e711232dc3946fe2f8f328a87682477c311838da99219bd8f8300e0",
+  "source_sha": "154e96cec3db9453f132bf57b9e38fe53ac22df80fc9a17b27dbed836cc568fa",
   "mode": "auto"
  },
  "wilfred/src/hyperwilfred_core/steps/quality/state-claims-methodology.md": {
@@ -871,7 +876,7 @@
  },
  "wilfred/tests/review_attestation.py": {
   "origin": "wilfred:tests/review_attestation.py",
-  "source_sha": "93052331016493cbb26c6d8174b1966ad67e62f27316a99ebb4bcb23cf1f369a",
+  "source_sha": "7a1a0809505c4cdbaae7e1ffa5bbe57f001f38df63ec745696af6eb46be324ea",
   "mode": "auto"
  },
  "wilfred/tests/test_acceptance_demo.py": {
@@ -994,6 +999,16 @@
   "source_sha": "2e7e2c3c89ba1d9fa18c4a5d98dc0189eafd70ec24e250f7a5d5f7a7fa40a78e",
   "mode": "auto"
  },
+ "wilfred/tests/test_control_evolution.py": {
+  "origin": "wilfred:tests/test_control_evolution.py",
+  "source_sha": "4d484b0cfe38e89e3807661f4c5b3465b0145ac6f13bb2896bc972e107207e2e",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_control_evolution_abuse.py": {
+  "origin": "wilfred:tests/test_control_evolution_abuse.py",
+  "source_sha": "5a085fe5bd4c684961f4528a6fa191635706d886789ae9ae4ff6c5c62f9da847",
+  "mode": "auto"
+ },
  "wilfred/tests/test_control_hardening.py": {
   "origin": "wilfred:tests/test_control_hardening.py",
   "source_sha": "e077eb4c3e819f6722415bf84778e6c885cca97bba4acf9bc7c2511052a40f16",
@@ -1016,12 +1031,12 @@
  },
  "wilfred/tests/test_e2e_build.py": {
   "origin": "wilfred:tests/test_e2e_build.py",
-  "source_sha": "fe96d2ff5b610d3b49d97629b9f2e8fc00e634aa19383b149c7b2b589df2e4d6",
+  "source_sha": "b6311131f15d57c8af4c50cbe5477a1c3d1cfe854874f69d44f21a5b27d39bd9",
   "mode": "auto"
  },
  "wilfred/tests/test_engine.py": {
   "origin": "wilfred:tests/test_engine.py",
-  "source_sha": "8b95f0a167ab272300a1eaa9fd095ff9b1875ac8cee97f10c15bef95a6bc8799",
+  "source_sha": "2fcdd126dccf76400cfa5a2960af702f999d777022ea9e2a5f056848c447af81",
   "mode": "auto"
  },
  "wilfred/tests/test_engine_state_isolation.py": {
@@ -1032,6 +1047,56 @@
  "wilfred/tests/test_escalation.py": {
   "origin": "wilfred:tests/test_escalation.py",
   "source_sha": "f2373596b69ad5baaeca91f1d029b85fb261a6d79edf014829f544c652341790",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_final_integrity.py": {
+  "origin": "wilfred:tests/test_final_integrity.py",
+  "source_sha": "3208195b65bf6f3eea3a26c20e1f1465c119761581536cc7989b03486553143f",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_final_review_recovery.py": {
+  "origin": "wilfred:tests/test_final_review_recovery.py",
+  "source_sha": "132063e0129558cd45e46299e5d87fc6c61e309cd71f95db160e616315c39271",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_final_trust_root_recovery.py": {
+  "origin": "wilfred:tests/test_final_trust_root_recovery.py",
+  "source_sha": "d24c011d65187339cf67fdfb418b4603b7f1ec211ff37a21411071f10497b262",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_final_trust_root_recovery_baseline.py": {
+  "origin": "wilfred:tests/test_final_trust_root_recovery_baseline.py",
+  "source_sha": "d1a86c9499148bfa2fe66031f8b9b0ac15b8a2216f155a03750e724b148b7d5f",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_final_trust_root_recovery_bytecode.py": {
+  "origin": "wilfred:tests/test_final_trust_root_recovery_bytecode.py",
+  "source_sha": "041e804e773b7a70f79659dbd2ddd86c227643bd802fb8349072923ebfc04ed2",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_final_trust_root_recovery_control_repair.py": {
+  "origin": "wilfred:tests/test_final_trust_root_recovery_control_repair.py",
+  "source_sha": "8a47cc8f024c5b3ef5df2bb4b9255330ee6e7d30f98d015c397ac71213fa8809",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_final_trust_root_recovery_dependency.py": {
+  "origin": "wilfred:tests/test_final_trust_root_recovery_dependency.py",
+  "source_sha": "aea791c29a0e2911841d5495275c54bb7901a4121aa30c814ee473f850bf926e",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_final_trust_root_recovery_pytest.py": {
+  "origin": "wilfred:tests/test_final_trust_root_recovery_pytest.py",
+  "source_sha": "54044d9961d393255e07c3f7e74fd406346cac73d18a84b3ad1da2b3567656f6",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_final_trust_root_recovery_reviews.py": {
+  "origin": "wilfred:tests/test_final_trust_root_recovery_reviews.py",
+  "source_sha": "20ff05b6ec4b56c04e0e72f2f2c8cdb74037e9478ef517b1d20dab46f48bace0",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_final_trust_root_recovery_trust.py": {
+  "origin": "wilfred:tests/test_final_trust_root_recovery_trust.py",
+  "source_sha": "f49d9837a8909cfd86358eaf573243a77153427814d33e441ca9b8984f0d7d94",
   "mode": "auto"
  },
  "wilfred/tests/test_flaky_gate.py": {
@@ -1074,6 +1139,261 @@
   "source_sha": "996d569ff68fd2335ec0618196fb72a8f088c078e63dcd06652d3ff2c49ad9d1",
   "mode": "auto"
  },
+ "wilfred/tests/test_gate0_fix_attestation_records.py": {
+  "origin": "wilfred:tests/test_gate0_fix_attestation_records.py",
+  "source_sha": "729f54eaf6bf2f6ebfa15fdd59a5912fe97d8df7a259c39873fbeec2cdce6b2a",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_fix_cli_attestation.py": {
+  "origin": "wilfred:tests/test_gate0_fix_cli_attestation.py",
+  "source_sha": "093259ea1b42de021f8c55712cb3d8d7e3f7bfecbc6b3aa2d8dfcef6769ef1bf",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_fix_colocated_controls.py": {
+  "origin": "wilfred:tests/test_gate0_fix_colocated_controls.py",
+  "source_sha": "ad8b0ccfe626865ab9f71592dd9e1140cb1eae11b222fa11ac7f068e15588de3",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_fix_compare_structure.py": {
+  "origin": "wilfred:tests/test_gate0_fix_compare_structure.py",
+  "source_sha": "243cbe03232bb811d1d03001c3f1a5b873fcdf1b1f6727a0992b6c0901e17ac8",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_fix_control_records.py": {
+  "origin": "wilfred:tests/test_gate0_fix_control_records.py",
+  "source_sha": "547dd0d2413e6ad5084f5c94c5138a63aa7b63c285cde12134d276102b10941f",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_fix_helper_witness.py": {
+  "origin": "wilfred:tests/test_gate0_fix_helper_witness.py",
+  "source_sha": "2f10f9ce0a901d3ae0f2d93000395764d1f25222b82a92c167bca6533986ae9c",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_fix_import_shadow.py": {
+  "origin": "wilfred:tests/test_gate0_fix_import_shadow.py",
+  "source_sha": "5c06e010c86b0583278b327bf24a3a29f54c5b09560e64219c1f3fcdd5e2c800",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_fix_key_read_error.py": {
+  "origin": "wilfred:tests/test_gate0_fix_key_read_error.py",
+  "source_sha": "32543524879759c3128f136779e0ef6c33ee5640bed09b6d6402ba20e6a711a4",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_fix_module_contracts.py": {
+  "origin": "wilfred:tests/test_gate0_fix_module_contracts.py",
+  "source_sha": "8f2eeb7cc6e87e55a7e4fefb85562f1f8910f64d81d8c524a9b18bf4c6620c92",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_fix_pinned_scope.py": {
+  "origin": "wilfred:tests/test_gate0_fix_pinned_scope.py",
+  "source_sha": "5ceebdd785d723e9a363a9a391f0582befd41bd54b6b1dfe3871a3b3d4ac5082",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_fix_pytest_config.py": {
+  "origin": "wilfred:tests/test_gate0_fix_pytest_config.py",
+  "source_sha": "696f05302654a48272e5b28cfaccbb83c9d827b7b2b261ab96f3dc077d02a017",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_fix_pytest_interpreter.py": {
+  "origin": "wilfred:tests/test_gate0_fix_pytest_interpreter.py",
+  "source_sha": "dae3d908cac115f03760dcd9196497726898d16a92f3f539a7327d725024271d",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_fix_pytest_seam.py": {
+  "origin": "wilfred:tests/test_gate0_fix_pytest_seam.py",
+  "source_sha": "31741aed641eade3c9ad9ab463a8cf11f0fe9d6dd6183b76ffc79b3f0b38f160",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_fix_quality_key_location.py": {
+  "origin": "wilfred:tests/test_gate0_fix_quality_key_location.py",
+  "source_sha": "dc9831602b64e869b5f65bbc354030b709644c2e27d813983d2a4df7ff72392e",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_fix_relocation.py": {
+  "origin": "wilfred:tests/test_gate0_fix_relocation.py",
+  "source_sha": "df83abf79bdaeaa502639a6c341c83451d6e19eb11563c74ca2ae1ca26f00bd1",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_fix_review_key_source.py": {
+  "origin": "wilfred:tests/test_gate0_fix_review_key_source.py",
+  "source_sha": "007339fbdec917416e760019048075a6bea989da7724126d418e1e7cda967d12",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_fix_review_scope.py": {
+  "origin": "wilfred:tests/test_gate0_fix_review_scope.py",
+  "source_sha": "d0e9abdb610d8cd106dfbf52e1d77e354c1229910c77d1580538418a3db43712",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_fix_scope_mode.py": {
+  "origin": "wilfred:tests/test_gate0_fix_scope_mode.py",
+  "source_sha": "03eca7995f984e6d080b19dca2a7b2e96f97da4ea0076a1055ba9c7f85b38022",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_fix_stable_reader.py": {
+  "origin": "wilfred:tests/test_gate0_fix_stable_reader.py",
+  "source_sha": "3d363fef2414f28984e5fe22d760e34fe6c27d9f6cc01546ace5b70305ebc077",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_fix_structured_result.py": {
+  "origin": "wilfred:tests/test_gate0_fix_structured_result.py",
+  "source_sha": "7c28a77144569bfd943345f93ec8d7a7993c28c27044c199fd850e63f6b16c8a",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_fix_subtest_results.py": {
+  "origin": "wilfred:tests/test_gate0_fix_subtest_results.py",
+  "source_sha": "b3782d53994d7eb4e8e7961952f8c8b5dd5f29aa3d4b8e027590df297087f33c",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_fix_trusted_key.py": {
+  "origin": "wilfred:tests/test_gate0_fix_trusted_key.py",
+  "source_sha": "8ebe98a7f1af31c23c4e977f64e7b8bcdf8fe92061517038f14240f40502517a",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_fix_unpinned_baseline.py": {
+  "origin": "wilfred:tests/test_gate0_fix_unpinned_baseline.py",
+  "source_sha": "1941eb13995437d51739595e5d97cfd567f2ace91e4d1fe0be551cce5a12833e",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_residual_acceptance_reads.py": {
+  "origin": "wilfred:tests/test_gate0_residual_acceptance_reads.py",
+  "source_sha": "306ae8c1ae6b4cf1e4b06fb9621c195d39a599d56bc06b40efed47fb99e846b9",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_residual_final_head_and_new_files.py": {
+  "origin": "wilfred:tests/test_gate0_residual_final_head_and_new_files.py",
+  "source_sha": "cb37633c7631de54e55bfd741fbfb213ac85d4af6d8ba672bb775101deebeca0",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_s02i_baseline_capture.py": {
+  "origin": "wilfred:tests/test_gate0_s02i_baseline_capture.py",
+  "source_sha": "823205b90c4cfcd17ccfbe5b435cd7e0e1515281ce93cd970dc4499b7f677cc2",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_s02l_baseline_capture.py": {
+  "origin": "wilfred:tests/test_gate0_s02l_baseline_capture.py",
+  "source_sha": "8f8b8e98832df83f3cf4427f5204a686b62c2980dc80fbbbd0471811a4af98ec",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_s02m_key_and_worktree.py": {
+  "origin": "wilfred:tests/test_gate0_s02m_key_and_worktree.py",
+  "source_sha": "78d75a749bbfe1598f495fcd27f033d2109683e01d64ecf600bc69646354dd0e",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_s02o_declared_not_passing.py": {
+  "origin": "wilfred:tests/test_gate0_s02o_declared_not_passing.py",
+  "source_sha": "3629c719364cf9f5451d07a76c693e7e81d797d2c58b508aadcdda4efd7bdf18",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_s02q_collection_shrink.py": {
+  "origin": "wilfred:tests/test_gate0_s02q_collection_shrink.py",
+  "source_sha": "d8bf05eee2c52287fbad69087f476e1e00ce9a97cf89e1b979940c6c1ee917d7",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_s03_closing_fixes.py": {
+  "origin": "wilfred:tests/test_gate0_s03_closing_fixes.py",
+  "source_sha": "2ac0bc8767e4976fe77957b5f34df520f4e679fe1274c2098ae482e257f61bea",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_sec2_baseline_origin.py": {
+  "origin": "wilfred:tests/test_gate0_sec2_baseline_origin.py",
+  "source_sha": "4aaf34658763329216922cccff367e93a03279c1ab748c100f1825ac81e2b179",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_sec2_expired_review.py": {
+  "origin": "wilfred:tests/test_gate0_sec2_expired_review.py",
+  "source_sha": "7a249ee3880a9db5260d48d421b46fbac6d734bac311e16c24ca309d5de4fc5d",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_sec2_key_identity.py": {
+  "origin": "wilfred:tests/test_gate0_sec2_key_identity.py",
+  "source_sha": "47486f320c5a525c692b900b3afd04a2378dc56c01f459f02769911f3d4cda87",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_sec2_learning_content.py": {
+  "origin": "wilfred:tests/test_gate0_sec2_learning_content.py",
+  "source_sha": "b9629b49abb56d2362e517b5acfcf9ab2434c1969e18c64c42e256a6bf796d79",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_sec2_packet_binding.py": {
+  "origin": "wilfred:tests/test_gate0_sec2_packet_binding.py",
+  "source_sha": "cad0052ead9118f030d8589badc917e76805acb8ed6ec6a10d90addf92fe8677",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_sec2_packet_worktree.py": {
+  "origin": "wilfred:tests/test_gate0_sec2_packet_worktree.py",
+  "source_sha": "51e9fc5329f2e361bf16e0afe32773ddc1787d8ca6a46a77261a08cc76cbe8cd",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_sec2_scope_anchor.py": {
+  "origin": "wilfred:tests/test_gate0_sec2_scope_anchor.py",
+  "source_sha": "a389d8d76f8f349be2d0ff14ec7d4b5fbacf01bd2738504b579a1b69556c3ba9",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_sec2_snapshot.py": {
+  "origin": "wilfred:tests/test_gate0_sec2_snapshot.py",
+  "source_sha": "050d0728683be8c0bfa221380035b9cafc0849c3fa8ec8b2906b01dbd6f082f4",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_sec_base_witness.py": {
+  "origin": "wilfred:tests/test_gate0_sec_base_witness.py",
+  "source_sha": "afba13c47b30e91bd8040ca2b429b36b1cf68e974a69b4ee55cffc410e71cd5f",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_sec_baseline_binding.py": {
+  "origin": "wilfred:tests/test_gate0_sec_baseline_binding.py",
+  "source_sha": "fe555c6a0398b8b9d0f3f2eb520abd5291782e72e9687e188531067b24dd1876",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_sec_baseline_guards.py": {
+  "origin": "wilfred:tests/test_gate0_sec_baseline_guards.py",
+  "source_sha": "dff455004069056ef82227dbc75d545e1710eef7f77a4742a705aa6f170c96d4",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_sec_data_witness.py": {
+  "origin": "wilfred:tests/test_gate0_sec_data_witness.py",
+  "source_sha": "de2772d57b2208bd94b924daa4f85034155c5318631fd0bb72b47992c539a242",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_sec_declared_target.py": {
+  "origin": "wilfred:tests/test_gate0_sec_declared_target.py",
+  "source_sha": "78dccb60e32e59cb1da2856c8fc4252b24cc444c91541ae4b300626fa8eda817",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_sec_key_home.py": {
+  "origin": "wilfred:tests/test_gate0_sec_key_home.py",
+  "source_sha": "e90e94dae89a919dcc496fc3a39fa8b3dd0e9a4734a089fe24451b2b0b3ee196",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_sec_nested_repository.py": {
+  "origin": "wilfred:tests/test_gate0_sec_nested_repository.py",
+  "source_sha": "74de35b3d531dca1383a7759df4b3bc333e6550c544bb56b22048d2485ae2883",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_sec_repository_discovery.py": {
+  "origin": "wilfred:tests/test_gate0_sec_repository_discovery.py",
+  "source_sha": "094ce14b36f872d4364213420e39318f8808f8509a23ab40af20290e509f5eb0",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_sec_review_scope.py": {
+  "origin": "wilfred:tests/test_gate0_sec_review_scope.py",
+  "source_sha": "d284c0e60685397747b90835e34ccf2d53299f4958029c45f2f401dbbb794812",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_sec_review_target.py": {
+  "origin": "wilfred:tests/test_gate0_sec_review_target.py",
+  "source_sha": "8780f1942512be3da05d02d5e858f113052bf0201fbda66c37a1833170dc6974",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_sec_scope_links.py": {
+  "origin": "wilfred:tests/test_gate0_sec_scope_links.py",
+  "source_sha": "0b327fcacd0f754d9cd56999d39d29fbfe8698fabc550f3e68320bb468657332",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_gate0_sec_scope_objects.py": {
+  "origin": "wilfred:tests/test_gate0_sec_scope_objects.py",
+  "source_sha": "b9479a7e218305fc662a81d2c5a53e1ba4a9b467d2f703c92610328578a742ad",
+  "mode": "auto"
+ },
  "wilfred/tests/test_gate_authority.py": {
   "origin": "wilfred:tests/test_gate_authority.py",
   "source_sha": "33a7b638e936cfe86634b5db16caf2bce4303abe6c87d66830d239aeb3742e0a",
@@ -1091,7 +1411,7 @@
  },
  "wilfred/tests/test_generated_artifacts.py": {
   "origin": "wilfred:tests/test_generated_artifacts.py",
-  "source_sha": "9a357f587fc2cbcdd4bb6fd9ee4d546b0f04f87f76221379e9b31004b8e9bdb0",
+  "source_sha": "8ab492b3f49eb5003cfc0f3473f6e76e9bc9814c5d0121e1db42e3675508fdb1",
   "mode": "auto"
  },
  "wilfred/tests/test_generated_hardening.py": {
@@ -1106,7 +1426,7 @@
  },
  "wilfred/tests/test_human_approvals_policy.py": {
   "origin": "wilfred:tests/test_human_approvals_policy.py",
-  "source_sha": "7be38032166978b06d6db01cf3e907c032eaefce572adb850ea8fe5f468ce624",
+  "source_sha": "8d4ce98685c48224ec90fdf8fb54a9ff5c5b31a8bc28b660310e9f70512539ec",
   "mode": "auto"
  },
  "wilfred/tests/test_import_guard.py": {
@@ -1171,7 +1491,7 @@
  },
  "wilfred/tests/test_quality.py": {
   "origin": "wilfred:tests/test_quality.py",
-  "source_sha": "b533aaabcb88f78263d439d81b45cc633486a7ba061dac76b620377396e7e599",
+  "source_sha": "d151df254b3b0b036bfad1ca7b8b65df2b22dd342cc95ad0925a5e2f5bb067f7",
   "mode": "auto"
  },
  "wilfred/tests/test_quality_committed_paths.py": {
@@ -1204,6 +1524,11 @@
   "source_sha": "89c888ef21c112577c3bb2b57d59a83e4305a191b99f661e4446b573c6586f94",
   "mode": "auto"
  },
+ "wilfred/tests/test_review_git_hardening.py": {
+  "origin": "wilfred:tests/test_review_git_hardening.py",
+  "source_sha": "a13fd558811f5409d1558270b937f7e383fc5d301ce48b5b34476cc272a39300",
+  "mode": "auto"
+ },
  "wilfred/tests/test_review_lenses.py": {
   "origin": "wilfred:tests/test_review_lenses.py",
   "source_sha": "a3b9bdbcb4c5f3ab18d4080348f5a4275378156209586f0fa148850975c5c67e",
@@ -1212,6 +1537,11 @@
  "wilfred/tests/test_review_provenance.py": {
   "origin": "wilfred:tests/test_review_provenance.py",
   "source_sha": "bdaa7b2390788f02197a54dc94428b577e622a143c974c96e7c87b356e951090",
+  "mode": "auto"
+ },
+ "wilfred/tests/test_review_scope_hardening.py": {
+  "origin": "wilfred:tests/test_review_scope_hardening.py",
+  "source_sha": "a4e163c1fd120751166f32ecbc4f2a68ee6428cfbc06a2a3a1796b5770650e75",
   "mode": "auto"
  },
  "wilfred/tests/test_severity_floor.py": {

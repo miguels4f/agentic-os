@@ -44,7 +44,9 @@ trusted build fingerprint before running generated code against `--input-file` J
 Protected engine actions use `gate-open` to create an expiring challenge. An external trusted
 human signer must sign it. Submit with `gate-approve --run-id ID --gate-id GATE --decision approve
 --token-file SIGNED.json`. `--by` is metadata, not authorization; `.approved` markers are ignored.
-The trusted host public key lives at `~/Library/Application Support/Wilfred/approval-public-key.pem`;
+The trusted host public key lives at `~/Library/Application Support/Wilfred/approval-public-key.pem`,
+where `~` is the home in the operating system account record (the `HOME` variable is ignored) and
+the file and its directory must be owned by that account or by root;
 Wilfred does not create a production private key or grant itself human authority.
 These are trusted-host APIs; generated runners do not implement arbitrary human-gate workflows
 or protected external effects. The demo tests a real harmless host callback blocked by the verifier

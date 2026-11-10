@@ -182,19 +182,22 @@ failed — fix the product and re-run `hw evaluate`.
   findings never become a passing fallback. On `escalate`, retain evidence and explain the remaining
   issue. Continue reversible corrections already authorized by the user within the valid scope;
   request direction only for a real external blocker or a necessary expansion of authority.
-  **Label provenance honestly:** critiques/evaluations written by a dispatched sub-agent carry
-  `--author independent` at record time; anything you wrote yourself is `adapter` (the default —
-  an `author` inside the JSON is ignored, and files edited after recording lose independence).
+  **Use signed provenance:** first record an external result with `--author independent` to issue
+  its exact challenge (the record remains `adapter`), have the trusted external reviewer sign it,
+  then repeat the command with `--attestation-file`. The signature binds run, iteration, packet,
+  lens and result hash; the private key stays outside the repository and workers. If no signer or
+  trusted public key exists, remain pending; never create or use a fixture signer for real review.
   A final iteration with adapter-authored or missing lenses returns `pending_independent_review`,
-  never `pass` — when limits (e.g. HTTP 429) stop the critics, STOP, report, and re-dispatch them
-  after the reset. Never relabel self-review as independent; only a human may `hw quality-override`.
+  never `pass`. Never relabel self-review as independent; only a human may `hw quality-override`.
 
 ### 3. Repeat from step 1 until `hw next-step` returns `done`.
 
 ## Modes
 - **BUILD** (greenfield): `hw plan --objective "..." --mode build` → frame → decompose →
   scaffold → implement → evaluate → **quality** → verify → ship.
-- **IMPROVE** (existing repo): `hw plan --objective "..." --mode improve` → comprehend → locate
+- **IMPROVE** (existing repo): `hw plan --objective "..." --mode improve --product-dir <dir>`
+  (`.` for the repository root; required for Python — without it the regression baseline is
+  refused) → comprehend → locate
   → implement → **regression** (existing tests must still pass) → **quality** → verify → ship.
   Same evaluator + gate + patcher core as BUILD; only the front of the pipeline differs.
 

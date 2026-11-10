@@ -13,6 +13,12 @@ later steps change the right place and prove they broke nothing.
    ```
    hw regression-baseline --run-id <RUN_ID> --target <product_dir>
    ```
+   `<product_dir>` must be the directory the run declared with `hw plan --product-dir` (use
+   `.` for the repository root). A run planned without `--product-dir` is refused: the engine
+   does not accept a caller-chosen baseline target. The same rule applies to
+   `hw regression-baseline-inherit`, which also requires the source run to declare that same
+   directory. If a capture is interrupted and the engine names two files to remove, STOP and
+   ask a human to remove them — never remove or edit them yourself.
    This records the collected test node ids + passing count (`regression_baseline.json`). The
    regression guard later FAILS if any baseline test is deleted, skipped, or renamed out of
    discovery — not just if one fails — so a change cannot neutralise the very test that protects

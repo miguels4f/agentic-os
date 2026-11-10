@@ -24,6 +24,14 @@ failing test is covered, and each covered test passes ALL of these checks:
   ERROR) whose failing ids were all parsed is eligible — never a collection error / interrupt /
   internal error, never a run whose failure count could not be reconciled with the parsed ids.
 
+The same file holds a second list, ``not_passing_at_capture``: the tests a human declares will
+not pass when the regression baseline is captured (skipped, expected to fail, failing, or in a
+test file that is not collected). Capture refuses any test that did not pass unless it is
+declared there or, for a failure this module tolerated at capture, by its known-failure entry
+above (see ``regression.require_declared_not_passing``).
+Its entries follow the same rules, except that a directory prefix is never accepted. The list
+never makes a check pass; it only lets the capture record those tests as unprotected.
+
 What this module cannot do (stated so nobody over-trusts it): git cannot tell a human commit from
 an agent commit. What it guarantees is that the list existed, committed and reviewable, before the
 run began; the worker write-scope blocks the file (``DEFAULT_BLOCKED_GLOBS``) so no packet can
@@ -34,6 +42,7 @@ from __future__ import annotations
 
 import fnmatch
 import json
+import os
 import subprocess
 from pathlib import Path, PurePosixPath
 
@@ -98,6 +107,26 @@ class KnownFailure(BaseModel):
         return v
 
 
+class DeclaredNotPassing(KnownFailure):
+    """One test declared NOT to pass when the regression baseline is captured (skipped,
+    expected to fail, failing, or in a test file that is not collected): a node id, a
+    ``file.py::name-pattern`` or a whole ``file.py`` — never a directory prefix — plus the
+    human reason. Such a test is recorded in the baseline and never protects anything; the
+    capture is refused for any test that did not pass and is not declared here (or, for a
+    tolerated failure, as a known failure). Read by ``regression.require_declared_not_passing``.
+    """
+
+    @field_validator("id")
+    @classmethod
+    def _no_directory(cls, v: str) -> str:
+        if "::" not in v and not v.strip().endswith(".py"):
+            raise ValueError(
+                f"not-passing selector {v!r} must be a node id or a .py test file, never a "
+                "directory"
+            )
+        return v
+
+
 class KnownFailuresDeclaration(BaseModel):
     """The whole ``.hw-known-failures.json`` file."""
 
@@ -105,6 +134,8 @@ class KnownFailuresDeclaration(BaseModel):
 
     version: int = Field(1, ge=1, le=1)
     entries: list[KnownFailure] = Field(default_factory=list, max_length=MAX_ENTRIES)
+    not_passing_at_capture: list[DeclaredNotPassing] = Field(
+        default_factory=list, max_length=MAX_ENTRIES)
 
 
 # --------------------------------------------------------------------------- matching
@@ -129,8 +160,17 @@ def entry_matches(selector: str, node_id: str) -> bool:
 
 
 def _git(cwd: Path, *args: str) -> subprocess.CompletedProcess[str]:
+    """Run git like the hardened reader of ``regression``: no replacement refs (a ``git
+    replace`` of the base commit must not change what was committed there), no inherited
+    ``GIT_*`` variables and no user or system configuration."""
+    env = {name: value for name, value in os.environ.items()
+           if not name.startswith("GIT_") and name != "LANGUAGE"}
+    env.update(GIT_NO_REPLACE_OBJECTS="1", GIT_CONFIG_NOSYSTEM="1", GIT_NO_LAZY_FETCH="1",
+               GIT_CONFIG_GLOBAL=os.devnull, GIT_TERMINAL_PROMPT="0", GIT_OPTIONAL_LOCKS="0",
+               LC_ALL="C")
     return subprocess.run(
-        ["git", "-C", str(cwd), *args], capture_output=True, text=True, check=False
+        ["git", "--no-replace-objects", "-c", "core.fsmonitor=false", "-C", str(cwd), *args],
+        capture_output=True, text=True, check=False, env=env,
     )
 
 
@@ -161,9 +201,16 @@ def read_declaration(
     out = _git(top, "show", f"{base_commit}:{rel}")
     if out.returncode != 0:
         return None, None
+    return parse_declaration(out.stdout, base_commit)
+
+
+def parse_declaration(
+    payload: str | bytes, base_commit: str
+) -> tuple[KnownFailuresDeclaration | None, str | None]:
+    """Validate the bytes of a declaration → ``(declaration, None)`` or ``(None, error)``."""
     try:
-        return KnownFailuresDeclaration.model_validate(json.loads(out.stdout)), None
-    except (json.JSONDecodeError, ValidationError) as exc:
+        return KnownFailuresDeclaration.model_validate(json.loads(payload)), None
+    except (json.JSONDecodeError, UnicodeDecodeError, ValidationError) as exc:
         return None, f"{DECLARATION_FILE} at {base_commit[:12]} is invalid: {exc}"
 
 
@@ -195,7 +242,8 @@ def _unchanged_since(top: Path, rel: str, base_commit: str) -> bool:
     exists = _git(top, "cat-file", "-e", f"{base_commit}:{rel}").returncode == 0
     if not exists:
         return False
-    return _git(top, "diff", "--quiet", base_commit, "--", rel).returncode == 0
+    return _git(top, "diff", "--quiet", "--no-ext-diff", "--no-textconv", base_commit, "--",
+                rel).returncode == 0
 
 
 # --------------------------------------------------------------------------- the gate hook
@@ -288,11 +336,13 @@ def apply(
 __all__ = [
     "DECLARATION_FILE",
     "MAX_ENTRIES",
+    "DeclaredNotPassing",
     "KnownFailure",
     "KnownFailuresDeclaration",
     "apply",
     "canonical_node_id",
     "entry_matches",
     "head_commit",
+    "parse_declaration",
     "read_declaration",
 ]

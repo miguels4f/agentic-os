@@ -57,5 +57,6 @@ review.
   ]
 }
 ```
-Do not write an `author` field: provenance is declared by the adapter when it records your report
-(`--author independent`, see `00_loop.md`). Clean up your temporary roots when done.
+Do not write an `author` field. Independent provenance requires the adapter's two-call external
+challenge/sign/resubmit protocol (`--author independent`, then `--attestation-file`; see
+`00_loop.md`). The first flag alone records `adapter`. Clean up your temporary roots when done.

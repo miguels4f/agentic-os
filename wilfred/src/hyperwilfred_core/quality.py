@@ -20,12 +20,15 @@ The precedence rule (spec §2) is enforced structurally here:
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 import re
+import stat
 import subprocess
+import unicodedata
 from pathlib import Path
 
-from hyperwilfred_core import approvals, gates, guardrails, severity_floor
+from hyperwilfred_core import approvals, gates, guardrails, path_safety, severity_floor
 from hyperwilfred_core.pipeline import load_instruction
 from hyperwilfred_core.run_store import RunEventStatus, RunStore, atomic_write_text
 from hyperwilfred_core.schemas import (
@@ -41,6 +44,7 @@ from hyperwilfred_core.schemas import (
     QualityLoopState,
     QualityPhase,
     ReviewAuthor,
+    ReviewTrustAnchor,
     RunState,
     RunStatus,
     StepStatus,
@@ -89,6 +93,7 @@ _BLOCKING = (CriticSeverity.BLOCKER, CriticSeverity.MAJOR)
 
 
 PENDING_INDEPENDENT_REVIEW = "PENDING_INDEPENDENT_REVIEW"
+_ATTESTATION_TX_SCHEMA = "wilfred-review-attestation-transaction/v1"
 
 
 class QualityError(RuntimeError):
@@ -113,6 +118,7 @@ def _iter_dir(repo_root: Path, run_id: str, iteration: int) -> Path:
 
 def _attestation_values(
     *, run_id: str, iteration: int, packet_id: str, lens: str, record_sha256: str,
+    scope_sha256: str,
 ) -> tuple[str, list[str]]:
     action = f"attest independent quality review {packet_id}"
     evidence = [
@@ -121,31 +127,143 @@ def _attestation_values(
         f"packet_id:{packet_id}",
         f"lens:{lens}",
         f"result_sha256:{record_sha256}",
+        f"scope_sha256:{scope_sha256}",
     ]
     return action, evidence
+
+
+def _stable_regular_bytes(
+    path: Path, *, root: Path | None = None, label: str = "file", allow_missing: bool = False,
+) -> bytes | None:
+    """Read through :func:`path_safety.stable_regular_bytes`; refusals become QualityError.
+
+    Review scope has a deliberately simple policy: every path must be a regular file reached
+    without crossing a symlink.  Internal, external, broken and cyclic links are all rejected.
+    """
+    try:
+        return path_safety.stable_regular_bytes(
+            path, root=root, label=label, allow_missing=allow_missing,
+        )
+    except path_safety.UnstableFileError as exc:
+        raise QualityError(str(exc)) from exc
+
+
+def _json_object(path: Path, label: str) -> dict:
+    try:
+        raw = _stable_regular_bytes(path, label=f"independent-review {label}")
+        assert raw is not None
+        value = json.loads(raw)
+    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        raise QualityError(f"independent-review {label} is missing or corrupt") from exc
+    if not isinstance(value, dict):
+        raise QualityError(f"independent-review {label} is invalid")
+    return value
+
+
+def _transaction_paths(directory: Path, gate_id: str) -> tuple[Path, Path, Path]:
+    return (
+        directory / f"{gate_id}.prepared.json",
+        directory / f"{gate_id}.public-key.pem",
+        directory / f"{gate_id}.recorded.json",
+    )
+
+
+def _prepared_manifest(
+    directory: Path, *, gate_id: str, run_id: str, iteration: int, packet_id: str, lens: str,
+    record_sha256: str, action: str, evidence: list[str], token_sha256: str,
+    key_fingerprint: str,
+) -> dict:
+    """The one prepared-manifest record: written on first submission, compared on retry."""
+    return {
+        "schema_version": _ATTESTATION_TX_SCHEMA, "gate_id": gate_id,
+        "run_id": run_id, "iteration": iteration, "packet_id": packet_id,
+        "lens": lens, "record_sha256": record_sha256,
+        "challenge_sha256": hashlib.sha256(
+            approvals.canonical_bytes(approvals.load_challenge(directory, gate_id))
+        ).hexdigest(),
+        "action_sha256": approvals.digest(action),
+        "evidence_sha256": approvals.digest(sorted(evidence)),
+        "token_sha256": token_sha256,
+        "key_fingerprint": key_fingerprint,
+    }
+
+
+def _recorded_state(directory: Path, gate_id: str, record_sha256: str) -> dict:
+    """The one recorded-state record: written when finalized, compared when verified."""
+    manifest, _pin, _finalized = _transaction_paths(directory, gate_id)
+    return {
+        "schema_version": _ATTESTATION_TX_SCHEMA,
+        "gate_id": gate_id,
+        "record_sha256": record_sha256,
+        "manifest_sha256": _sha(manifest),
+        "receipt_sha256": _sha(approvals.consumed_file(directory, gate_id)),
+    }
+
+
+def _finalize_attestation(directory: Path, gate_id: str, record_sha256: str) -> str:
+    manifest, _pin, finalized = _transaction_paths(directory, gate_id)
+    receipt = approvals.consumed_file(directory, gate_id)
+    if not manifest.exists() or not receipt.exists():
+        raise QualityError("independent-review transaction is not durably consumed")
+    value = _recorded_state(directory, gate_id, record_sha256)
+    encoded = json.dumps(value, indent=2, sort_keys=True) + "\n"
+    if finalized.exists():
+        existing = _stable_regular_bytes(finalized, label="independent-review recorded state")
+        if existing != encoded.encode():
+            raise QualityError("independent-review recorded state conflicts with this result")
+    if not finalized.exists():
+        atomic_write_text(finalized, encoded)
+    return _sha(finalized)
+
+
+def _verify_finalized(directory: Path, gate_id: str, record_sha256: str) -> str | None:
+    _manifest, _pin, finalized = _transaction_paths(directory, gate_id)
+    if not finalized.exists():
+        return None
+    value = _json_object(finalized, "recorded state")
+    if value != _recorded_state(directory, gate_id, record_sha256):
+        raise QualityError("independent-review recorded state was altered")
+    return _sha(finalized)
+
+
+def _external_review_key(key: Path, repo_root: Path, state: RunState) -> Path:
+    """Refuse a review key inside any ``.hw``, the product directory or its git work tree.
+
+    The fence is the run's product directory (the repository itself when it is ``.``); the
+    location rule adds the enclosing git work tree.  Raises ``approvals.ApprovalError``.
+    """
+    return approvals.require_external_key_location(
+        key, excluded_roots=[repo_root / state.product_dir]
+    )
 
 
 def _attested_author(
     *, paths, run_id: str, iteration: int, packet_id: str, lens: str,
     record_sha256: str, requested: str | None, attestation_file: str | None,
-) -> tuple[ReviewAuthor, str | None, dict[str, str]]:
+    recorded_attestation: str | None, state: RunState,
+    review_public_key_path: Path | None = None,
+) -> tuple[ReviewAuthor, str | None, str | None, dict[str, str]]:
     """Promote to independent only through the external signed-review boundary."""
     declared = ReviewAuthor(requested) if requested is not None else ReviewAuthor.ADAPTER
+    if attestation_file is not None and declared is not ReviewAuthor.INDEPENDENT:
+        raise QualityError("--attestation-file requires author='independent'")
     if declared is not ReviewAuthor.INDEPENDENT:
-        return ReviewAuthor.ADAPTER, None, {}
+        return ReviewAuthor.ADAPTER, None, None, {}
 
     directory = paths.run_dir / "review-attestations"
+    scope_sha256 = _review_scope_sha256(paths.repo_root, run_id, state, packet_id)
     action, evidence = _attestation_values(
         run_id=run_id, iteration=iteration, packet_id=packet_id, lens=lens,
-        record_sha256=record_sha256,
+        record_sha256=record_sha256, scope_sha256=scope_sha256,
     )
     base_id = f"review-{iteration}-{hashlib.sha256(packet_id.encode()).hexdigest()[:16]}"
-    gate_id = approvals.evidence_gate_id(directory, base_id, evidence)
     try:
-        approvals.issue_challenge(
-            directory, run_id=run_id, gate_id=gate_id, action=action, evidence=evidence,
-            purpose="independent-quality-review", reuse_pending=True,
-        )
+        gate_id = approvals.evidence_gate_id(directory, base_id, evidence)
+        if not approvals.consumed_file(directory, gate_id).exists():
+            approvals.issue_challenge(
+                directory, run_id=run_id, gate_id=gate_id, action=action, evidence=evidence,
+                purpose="independent-quality-review", reuse_pending=True,
+            )
     except approvals.ApprovalError as exc:
         raise QualityError(f"independent-review attestation is invalid: {exc}") from exc
     challenge = approvals.challenge_file(directory, gate_id)
@@ -155,22 +273,96 @@ def _attested_author(
         "attestation_decision": str(canonical_token),
     }
     if attestation_file is None:
-        return ReviewAuthor.ADAPTER, None, details
+        return ReviewAuthor.ADAPTER, None, None, details
 
     supplied = Path(attestation_file)
+    manifest, pinned_key, finalized = _transaction_paths(directory, gate_id)
+    receipt = approvals.consumed_file(directory, gate_id)
+    anchor_key = f"{iteration}:{lens}"
+    anchor = _ensure_quality(state).review_trust_anchors.get(anchor_key)
+    recorded = (
+        recorded_attestation == gate_id and anchor is not None
+        and anchor.gate_id == gate_id and finalized.is_file()
+        and _sha(finalized) == anchor.transaction_sha256
+    )
     try:
-        if supplied.resolve() != canonical_token.resolve():
-            atomic_write_text(canonical_token, supplied.read_text(encoding="utf-8"))
-        decision, _reviewer, _note = approvals.verify_and_consume(
-            directory, gate_id, canonical_token, expected_run_id=run_id,
-            public_key_path=approvals.DEFAULT_REVIEW_ATTESTATION_PUBLIC_KEY_PATH,
-            expected_action=action, expected_evidence=evidence,
+        supplied_bytes = _stable_regular_bytes(supplied, label="supplied attestation token")
+        assert supplied_bytes is not None
+        supplied_token = json.loads(supplied_bytes)
+        token_sha256 = hashlib.sha256(approvals.canonical_bytes(supplied_token)).hexdigest()
+        external_key = _external_review_key(
+            review_public_key_path or approvals.DEFAULT_REVIEW_ATTESTATION_PUBLIC_KEY_PATH,
+            paths.repo_root, state,
         )
-    except (approvals.ApprovalError, OSError, UnicodeError) as exc:
+        external_fingerprint = approvals.public_key_fingerprint(external_key)
+        if not manifest.exists():
+            if pinned_key.exists() or receipt.exists() or finalized.exists():
+                raise QualityError("independent-review prepared manifest is missing")
+            atomic_write_text(canonical_token, supplied_bytes.decode("utf-8"))
+            decision, _reviewer, _note = approvals.verify_and_consume(
+                directory, gate_id, canonical_token, expected_run_id=run_id,
+                public_key_path=external_key, expected_action=action,
+                expected_evidence=evidence, consume=False,
+            )
+            prepared = None
+        else:
+            prepared = _json_object(manifest, "prepared manifest")
+            if prepared.get("token_sha256") != token_sha256:
+                raise QualityError("a prepared review can only retry its exact signed token")
+            decision, _reviewer, _note = approvals.verify_and_consume(
+                directory, gate_id, supplied, expected_run_id=run_id,
+                public_key_path=external_key, expected_action=action,
+                expected_evidence=evidence, consume=False, recorded=recorded,
+            )
+        expected_prepared = _prepared_manifest(
+            directory, gate_id=gate_id, run_id=run_id, iteration=iteration,
+            packet_id=packet_id, lens=lens, record_sha256=record_sha256, action=action,
+            evidence=evidence, token_sha256=token_sha256, key_fingerprint=external_fingerprint,
+        )
+        if prepared is None:
+            atomic_write_text(
+                manifest, json.dumps(expected_prepared, indent=2, sort_keys=True) + "\n"
+            )
+        elif prepared != expected_prepared:
+            raise QualityError("independent-review prepared manifest was altered")
+        trusted_key_bytes = _stable_regular_bytes(external_key, label="external review key")
+        assert trusted_key_bytes is not None
+        trusted_key = trusted_key_bytes.decode("utf-8")
+        if (
+            pinned_key.exists()
+            and approvals.public_key_fingerprint(pinned_key) != external_fingerprint
+        ):
+            raise QualityError("independent-review attestation key pin conflicts with manifest")
+        if not pinned_key.exists():
+            if receipt.exists() or finalized.exists():
+                raise QualityError("independent-review key pin is missing")
+            atomic_write_text(pinned_key, trusted_key)
+        if recorded_attestation not in (None, gate_id):
+            raise QualityError("independent-review state names a different attestation")
+        if recorded_attestation == gate_id and not finalized.exists():
+            raise QualityError("independent-review recorded state is missing")
+        if receipt.exists():
+            decision, _reviewer, _note = approvals.verify_and_consume(
+                directory, gate_id, canonical_token, expected_run_id=run_id,
+                public_key_path=pinned_key, expected_action=action,
+                expected_evidence=evidence, consume=False, recorded=recorded,
+            )
+        else:
+            if finalized.exists():
+                raise QualityError("independent-review receipt is missing")
+            decision, _reviewer, _note = approvals.verify_and_consume(
+                directory, gate_id, canonical_token, expected_run_id=run_id,
+                public_key_path=pinned_key, expected_action=action,
+                expected_evidence=evidence,
+            )
+        if finalized.exists():
+            _verify_finalized(directory, gate_id, record_sha256)
+    except (approvals.ApprovalError, OSError, UnicodeError, ValueError,
+            json.JSONDecodeError) as exc:
         raise QualityError(f"independent-review attestation is invalid: {exc}") from exc
     if decision != "approve":
         raise QualityError(f"independent-review attestation was {decision}, not approved")
-    return ReviewAuthor.INDEPENDENT, gate_id, details
+    return ReviewAuthor.INDEPENDENT, gate_id, external_fingerprint, details
 
 
 def _ensure_quality(state: RunState) -> QualityLoopState:
@@ -185,45 +377,566 @@ def _ensure_quality(state: RunState) -> QualityLoopState:
     return state.quality
 
 
-def _deterministic_green(state: RunState) -> bool:
-    """True iff the run's deterministic gate step is currently green.
-
-    The hard wall: the quality loop can never PASS (or fall back) while the deterministic gate
-    is red or has not been (re-)run for the current iteration.
-    """
+def _deterministic_green(state: RunState, repo_root: Path, run_id: str) -> bool:
+    """A green step remains green only while its evaluated product bytes remain current."""
     q = state.quality
-    if q is None:  # pragma: no cover — callers always ensure quality first
+    if q is None or state.step_status.get(q.det_gate_step) != StepStatus.DONE:
         return False
-    det = q.det_gate_step
-    return (
-        state.step_status.get(det) == StepStatus.DONE
-        and state.status is not RunStatus.GATE_FAILED
+    if state.status is RunStatus.GATE_FAILED:
+        return False
+    if not state.deterministic_evidence_emitted:  # legacy runs have no modern snapshot pair
+        return True
+    run_dir = repo_root / ".hw" / run_id
+    pinned = run_dir / "deterministic-scope.sha256"
+    verification = run_dir / "evidence" / "verification.json"
+    try:
+        anchored = state.deterministic_scope_sha256
+        return (anchored is not None and pinned.is_file() and verification.is_file()
+                and pinned.read_text(encoding="utf-8").strip() == anchored
+                and product_snapshot_sha256(repo_root, state) == anchored)
+    except (OSError, QualityError, UnicodeError):
+        return False
+
+
+def _inside_git_work_tree(repo_root: Path) -> bool:
+    """True inside a git work tree; False only when explicitly outside every repository.
+
+    Outside means git itself answers "not a git repository" AND no ``.git`` entry exists in
+    *repo_root* or any parent.  Every other outcome (missing git executable, unreadable or
+    corrupt repository, unexpected answer) raises, so the review scope never binds to nothing.
+    """
+    try:
+        probe = _scope_git(repo_root, "rev-parse", "--is-inside-work-tree")
+    except OSError as exc:
+        raise QualityError(f"cannot determine review scope: git is unavailable ({exc})") from exc
+    if probe.returncode == 0 and probe.stdout.strip() == b"true":
+        return True
+    absolute = Path(os.path.abspath(repo_root))
+    marker = any(os.path.lexists(parent / ".git") for parent in (absolute, *absolute.parents))
+    if probe.returncode != 0 and b"not a git repository" in probe.stderr and not marker:
+        return False
+    detail = os.fsdecode(probe.stderr).strip() or os.fsdecode(probe.stdout).strip()
+    raise QualityError(f"cannot determine working-tree review scope: {detail or 'git error'}")
+
+
+def _product_files_outside_git(repo_root: Path, product_dir: str) -> list[str]:
+    """Every non-directory entry under *product_dir* (links included so they are refused).
+
+    Engine state (``.hw``) and git metadata (``.git``) at the repository root are never product.
+    """
+    relative_dir = Path(product_dir)
+    if relative_dir.is_absolute() or ".." in relative_dir.parts:
+        raise QualityError("product directory escapes the repository")
+    root = Path(os.path.abspath(repo_root))
+    candidate = root
+    for component in relative_dir.parts:
+        candidate /= component
+        try:
+            metadata = os.lstat(candidate)
+        except FileNotFoundError:
+            return []  # nothing built yet; creating any product file changes the snapshot
+        if stat.S_ISLNK(metadata.st_mode):
+            raise QualityError(f"product directory contains symlink {candidate}")
+    if not candidate.is_dir():
+        return [candidate.relative_to(root).as_posix()]
+
+    def refuse(exc: OSError) -> None:
+        raise QualityError(f"cannot enumerate product files outside git: {exc}") from exc
+
+    out: list[str] = []
+    for current, dirnames, filenames in os.walk(candidate, onerror=refuse, followlinks=False):
+        base = Path(current)
+        kept: list[str] = []
+        for name in dirnames:
+            entry = base / name
+            if entry.relative_to(root).as_posix() in (".hw", ".git"):
+                continue
+            if entry.is_symlink():
+                out.append(entry.relative_to(root).as_posix())  # refused when read
+            else:
+                kept.append(name)
+        dirnames[:] = kept
+        out.extend(
+            (base / name).relative_to(root).as_posix() for name in filenames
+            if (base / name).relative_to(root).as_posix() != ".git"
+        )
+    return sorted(out)
+
+
+_SCOPE_EXEMPT_TOP = frozenset({".hw", ".git", ".venv"})  # engine state, git metadata, env
+_SCOPE_EXEMPT_CACHES = frozenset({".pytest_cache", ".mypy_cache", ".ruff_cache"})  # any depth
+
+
+def _scope_git_env() -> dict[str, str]:
+    env = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
+    env.update(
+        LC_ALL="C", LANGUAGE="C", GIT_NO_REPLACE_OBJECTS="1", GIT_OPTIONAL_LOCKS="0",
+        # No account-wide or system-wide git configuration or attributes steer the scope.
+        GIT_CONFIG_NOSYSTEM="1", GIT_CONFIG_GLOBAL=os.devnull, GIT_ATTR_NOSYSTEM="1",
+        # A partial clone must not fetch missing objects from a remote the repository names
+        # (its transport settings could start a program), and git never waits for a password.
+        GIT_NO_LAZY_FETCH="1", GIT_TERMINAL_PROMPT="0",
+    )
+    return env
+
+
+def _neutralized_filters(repo_root: Path, env: dict[str, str]) -> list[str]:
+    """``-c`` options that turn every ``filter.<name>.*`` driver of the repository into a no-op.
+
+    A repository can name a clean/smudge/process command in its own configuration and bind it to
+    paths through ``.gitattributes``; ``git status`` would then run that command.  Every driver
+    found is replaced by ``cat`` (a plain copy) and its long-running ``process`` is cleared.
+    """
+    found = subprocess.run(
+        ["git", "-C", str(repo_root), "--no-replace-objects", "config", "--name-only",
+         "--get-regexp", r"^filter\."],
+        capture_output=True, check=False, env=env,
+    )
+    options: list[str] = []
+    for name in sorted({
+        line.rsplit(b".", 1)[0].decode("utf-8", "replace")
+        for line in found.stdout.splitlines() if line.count(b".") >= 2
+    }):
+        options += ["-c", f"{name}.clean=cat", "-c", f"{name}.smudge=cat",
+                    "-c", f"{name}.process=", "-c", f"{name}.required=false"]
+    return options
+
+
+def _scope_git(
+    repo_root: Path, *args: str, stdin: bytes | None = None,
+) -> subprocess.CompletedProcess[bytes]:
+    """Run git for the review scope without inherited GIT_* overrides, replace refs, outside
+    configuration, or any repository-defined filter command."""
+    env = _scope_git_env()
+    return subprocess.run(
+        ["git", "-C", str(repo_root), "--no-replace-objects", "-c", "core.fsmonitor=false",
+         "-c", "core.untrackedCache=false", "-c", f"core.attributesFile={os.devnull}",
+         "-c", "diff.ignoreSubmodules=all", "-c", "submodule.recurse=false",
+         *_neutralized_filters(repo_root, env), *args],
+        capture_output=True, check=False, env=env, input=stdin,
     )
 
 
-def _changed_product_paths(repo_root: Path, base_commit: str | None = None) -> list[str]:
-    """Committed and working-tree paths touched since the run began."""
-    # Review scope only (which files the critics read), never authority: tolerant on purpose.
-    paths = set(guardrails.changed_paths(str(repo_root), strict=False))
-    if base_commit:
-        completed = subprocess.run(
-            ["git", "-C", str(repo_root), "diff", "--name-only", f"{base_commit}..HEAD"],
-            capture_output=True,
-            text=True,
-            check=False,
+def _blob_id(payload: bytes, width: int) -> str:
+    digest = hashlib.sha1(usedforsecurity=False) if width == 40 else hashlib.sha256()
+    digest.update(b"blob %d\0" % len(payload))
+    digest.update(payload)
+    return digest.hexdigest()
+
+
+def _differs_from_base(path: Path, mode: str, blob: str) -> bool:
+    try:
+        metadata = os.lstat(path)
+        if stat.S_ISLNK(metadata.st_mode):
+            return mode != "120000" or _blob_id(os.fsencode(os.readlink(path)), len(blob)) != blob
+        if not stat.S_ISREG(metadata.st_mode) or mode not in ("100644", "100755"):
+            return True
+        return _blob_id(path.read_bytes(), len(blob)) != blob
+    except OSError:
+        return True  # missing or unreadable: listed, then refused or recorded when hashed
+
+
+def _verified_objects(
+    repo_root: Path, base_commit: str, ids: list[str],
+) -> dict[str, tuple[bytes, bytes]]:
+    """``{id: (type, body)}`` read in one batch; every body must hash to the id it was asked by.
+
+    Git itself does not re-hash a tree it reads, so an overwritten loose object would otherwise
+    be believed.  Both object formats are covered: the id length selects the hash.
+    """
+    refusal = f"cannot determine committed review scope from {base_commit!r}"
+    try:
+        done = _scope_git(
+            repo_root, "cat-file", "--batch", stdin="".join(f"{i}\n" for i in ids).encode(),
         )
-        if completed.returncode != 0:
-            detail = completed.stderr.strip() or "unknown git error"
+    except OSError as exc:
+        raise QualityError(f"{refusal}: {exc}") from exc
+    if done.returncode != 0:
+        detail = os.fsdecode(done.stderr).strip() or "unknown git error"
+        raise QualityError(f"{refusal}: {detail}")
+    out, offset = done.stdout, 0
+    found: dict[str, tuple[bytes, bytes]] = {}
+    for object_id in ids:
+        end = out.find(b"\n", offset)
+        header = out[offset:end].split() if end >= 0 else []
+        if len(header) != 3 or header[0] != object_id.encode() or not header[2].isdigit():
+            raise QualityError(f"{refusal}: object {object_id} is unavailable")
+        kind, size = header[1], int(header[2])
+        body = out[end + 1:end + 1 + size]
+        digest = hashlib.new(
+            "sha1" if len(object_id) == 40 else "sha256",
+            kind + b" %d\0" % size + body, usedforsecurity=False,
+        ).hexdigest()
+        if len(body) != size or digest != object_id:
+            raise QualityError(f"{refusal}: object {object_id} does not hash to its own id")
+        found[object_id] = (kind, body)
+        offset = end + 1 + size + 1
+    return found
+
+
+def _base_tree(repo_root: Path, base_commit: str) -> dict[str, tuple[str, str]]:
+    """``{path: (mode, blob id)}`` of *base_commit*, hash-verified at every tree level."""
+    refusal = f"cannot determine committed review scope from {base_commit!r}"
+    try:
+        named = _scope_git(repo_root, "rev-parse", "--verify", f"{base_commit}^{{commit}}")
+        where = _scope_git(repo_root, "rev-parse", "--show-prefix")
+    except OSError as exc:
+        raise QualityError(f"{refusal}: {exc}") from exc
+    commit = named.stdout.strip().decode("ascii", "replace")
+    if where.returncode != 0 or named.returncode != 0 or not re.fullmatch(
+        r"[0-9a-f]{40}|[0-9a-f]{64}", commit,
+    ):
+        detail = os.fsdecode(named.stderr or where.stderr).strip() or "unknown git error"
+        raise QualityError(f"{refusal}: {detail}")
+    prefix = os.fsdecode(where.stdout.removesuffix(b"\n"))  # "" at the top level, else "dir/"
+    kind, body = _verified_objects(repo_root, base_commit, [commit])[commit]
+    if kind != b"commit" or not body.startswith(b"tree "):
+        raise QualityError(f"{refusal}: not a commit")
+    width = len(commit) // 2
+    pending = {"": body[5:5 + len(commit)].decode("ascii", "replace")}
+    base: dict[str, tuple[str, str]] = {}
+    while pending:
+        objects = _verified_objects(repo_root, base_commit, sorted(set(pending.values())))
+        level, pending = pending, {}
+        for directory, tree_id in level.items():
+            kind, body = objects[tree_id]
+            if kind != b"tree":
+                raise QualityError("malformed git tree entry in review scope")
+            offset = 0
+            while offset < len(body):
+                space = body.find(b" ", offset)
+                null = body.find(b"\0", space)
+                name = body[space + 1:null]
+                if space < 0 or null < 0 or null + 1 + width > len(body) or (
+                    name in (b"", b".", b"..") or b"/" in name
+                ):
+                    raise QualityError("malformed git tree entry in review scope")
+                mode, object_id = body[offset:space], body[null + 1:null + 1 + width].hex()
+                path = f"{directory}/{os.fsdecode(name)}" if directory else os.fsdecode(name)
+                if mode == b"40000":
+                    pending[path] = object_id
+                elif mode != b"160000":  # a nested repository entry has no bytes here
+                    base[path] = (mode.decode("ascii", "replace"), object_id)
+                offset = null + 1 + width
+    return {path[len(prefix):]: entry for path, entry in base.items() if path.startswith(prefix)}
+
+
+def _venv_startup_files(root: Path) -> set[str]:
+    """Interpreter start-up hooks of the exempt top-level ``.venv``, bound despite the exemption.
+
+    The directory itself is installed tooling and is not walked, but ``*.pth`` files and
+    ``sitecustomize`` / ``usercustomize`` modules in its site-packages run on every interpreter
+    start, so they are part of the reviewed scope (a link among them is refused when read).
+    """
+    venv = root / ".venv"
+    found: set[str] = set()
+    try:
+        if venv.is_symlink() or not venv.is_dir():
+            return found
+        if (venv / "pyvenv.cfg").exists() or (venv / "pyvenv.cfg").is_symlink():
+            found.add(".venv/pyvenv.cfg")
+        sites = [
+            *(venv / "lib").glob("python*/site-packages"), venv / "Lib" / "site-packages",
+            *(venv / "lib64").glob("python*/site-packages"),
+        ]
+        for site in sites:
+            if site.is_symlink() or not site.is_dir():
+                continue
+            for entry in os.scandir(site):
+                lowered = entry.name.lower()
+                if lowered.endswith(".pth") or lowered.split(".")[0] in {
+                    "sitecustomize", "usercustomize"
+                }:
+                    found.add((Path(site) / entry.name).relative_to(root).as_posix())
+    except OSError as exc:
+        raise QualityError(f"cannot enumerate interpreter start-up files: {exc}") from exc
+    return found
+
+
+def _worktree_delta(
+    repo_root: Path, base_commit: str, new_links: set[str] | None = None,
+) -> set[str]:
+    """Paths whose on-disk bytes differ from *base_commit*, without trusting the git index.
+
+    Ignore rules, index flags, filters and file-system monitors cannot hide a path: the commit
+    tree is compared with a plain walk of the directory.  Only the fixed exempt directories are
+    not walked; files recorded in the base commit are compared even there.  Links that the base
+    commit does not record are also added to *new_links*.
+    """
+    base = _base_tree(repo_root, base_commit)
+    root = Path(os.path.abspath(repo_root))
+
+    def refuse(exc: OSError) -> None:
+        raise QualityError(f"cannot enumerate working-tree review scope: {exc}") from exc
+
+    changed: set[str] = set()
+    seen: set[str] = set()
+    for current, dirnames, filenames in os.walk(root, onerror=refuse, followlinks=False):
+        here = Path(current)
+        exempt = _SCOPE_EXEMPT_CACHES | (_SCOPE_EXEMPT_TOP if here == root else frozenset())
+        links = [name for name in dirnames if (here / name).is_symlink()]
+        dirnames[:] = [name for name in dirnames if name not in links and name not in exempt]
+        for name in [*filenames, *links]:
+            relative = (here / name).relative_to(root).as_posix()
+            if here == root and name in _SCOPE_EXEMPT_TOP:
+                continue
+            seen.add(relative)
+            if relative not in base:
+                changed.add(relative)
+                if new_links is not None and (here / name).is_symlink():
+                    new_links.add(relative)
+            elif _differs_from_base(here / name, *base[relative]):
+                changed.add(relative)
+    for relative, (mode, blob) in base.items():
+        if relative not in seen and _differs_from_base(root / relative, mode, blob):
+            changed.add(relative)
+    changed.update(_venv_startup_files(root) - set(base))
+    return changed
+
+
+def _ignored_by_git(repo_root: Path, candidates: set[str]) -> set[str]:
+    """The *candidates* that git neither tracks nor reports: matched by an ignore rule."""
+    if not candidates:
+        return set()
+    try:
+        done = _scope_git(
+            repo_root, "check-ignore", "-z", "--stdin",
+            stdin=b"".join(os.fsencode(item) + b"\0" for item in sorted(candidates)),
+        )
+    except OSError as exc:
+        raise QualityError(f"cannot determine working-tree review scope: {exc}") from exc
+    if done.returncode not in (0, 1):
+        raise QualityError("cannot determine working-tree review scope")
+    return {os.fsdecode(item) for item in done.stdout.split(b"\0") if item} & candidates
+
+
+def _reviewed_directory(repo_root: Path, relative: str, resolved: Path) -> bytes:
+    """Where the directory behind link *relative* lies inside the repository, or a refusal.
+
+    *resolved* is the fully resolved target.  It must be a directory the walk itself binds:
+    inside the repository, not the repository root nor a directory that holds the link, and
+    neither it nor any directory above it may be an exempt directory.  Exempt is decided by file
+    identity and by case-insensitive name, never by the spelling written in the link; any doubt
+    is a refusal.
+    """
+    refusal = f"reviewed path {relative!r} is a link to a directory that is not reviewed"
+    try:
+        root = Path(os.path.realpath(repo_root))
+        holder = Path(os.path.realpath((repo_root / relative).parent))
+        if not resolved.is_relative_to(root) or holder.is_relative_to(resolved):
+            raise QualityError(refusal)
+        parts = resolved.relative_to(root).parts
+        here = root
+        for depth, name in enumerate(parts):
+            here = here / name
+            folded = unicodedata.normalize("NFC", name).casefold()
+            twins = [root / top for top in sorted(_SCOPE_EXEMPT_TOP)]
+            twins += [here.parent / cache for cache in sorted(_SCOPE_EXEMPT_CACHES)]
+            if (
+                folded in _SCOPE_EXEMPT_CACHES
+                or (depth == 0 and folded in _SCOPE_EXEMPT_TOP)
+                or not stat.S_ISDIR(os.lstat(here).st_mode)
+                or any(os.path.exists(twin) and os.path.samefile(here, twin) for twin in twins)
+            ):
+                raise QualityError(refusal)
+    except (OSError, ValueError) as exc:
+        raise QualityError(refusal) from exc
+    return os.fsencode("/".join(parts))
+
+
+def _link_entry(repo_root: Path, relative: str) -> str:
+    """Snapshot entry of an ignored link: its target text plus what the link resolves to.
+
+    A regular file (anywhere) is bound by its bytes.  A directory is accepted only where the
+    walk binds its files (see ``_reviewed_directory``) and is bound by its resolved location, so
+    re-pointing any hop of the chain changes the entry; any other directory is importable code
+    nothing binds, so it is refused.  A dangling link is bound as such.  Every other kind of
+    target, and a loop, is refused.
+    """
+    refusal = f"reviewed path {relative!r}"
+    try:
+        text = os.fsencode(os.readlink(repo_root / relative))  # fails on anything but a link
+        resolved = Path(os.path.realpath(repo_root / relative))
+    except OSError as exc:
+        raise QualityError(f"{refusal} changed while it was bound: {exc}") from exc
+    try:
+        mode = os.lstat(resolved).st_mode
+    except FileNotFoundError:
+        kind = b"dangling"
+    except OSError as exc:
+        raise QualityError(f"{refusal} is a link whose target cannot be inspected") from exc
+    else:
+        if stat.S_ISREG(mode):
+            raw = _stable_regular_bytes(resolved, label=f"target of link {relative!r}")
+            kind = b"file\0" + hashlib.sha256(raw or b"").hexdigest().encode()
+        elif stat.S_ISDIR(mode):
+            kind = b"directory\0" + _reviewed_directory(repo_root, relative, resolved)
+        else:
+            raise QualityError(f"{refusal} is a link to something that is not a file")
+    return "link:" + hashlib.sha256(b"wilfred-ignored-link\0" + text + b"\0" + kind).hexdigest()
+
+
+def _changed_product_paths(
+    repo_root: Path, base_commit: str | None = None, *, product_dir: str | None = None,
+    bound_links: set[str] | None = None,
+) -> list[str]:
+    """Committed and working-tree paths touched since the run began.
+
+    The mode follows the run state recorded at planning time, never the current directory.  A
+    run without a base commit (planned outside git or on an unborn HEAD) always covers every file
+    under the declared *product_dir*, even if a git repository or first commit appears later.  A
+    run with a base commit uses git, and any git failure (or a vanished repository) raises.
+
+    *bound_links* receives the links that only the directory walk finds and that git ignores
+    (the layout of installed dependency tools).  Every other link stays refused when read.
+    """
+    if not base_commit:
+        if product_dir is None:
             raise QualityError(
-                f"cannot determine committed review scope from {base_commit!r}: {detail}"
+                "cannot determine review scope outside a git work tree without a product directory"
             )
-        paths.update(completed.stdout.splitlines())
+        return [
+            p for p in _product_files_outside_git(repo_root, product_dir)
+            if p != ".hw" and not p.startswith(".hw/")
+        ]
+    if not _inside_git_work_tree(repo_root):
+        raise QualityError("run began in a git repository that is no longer present")
+    try:
+        status = _scope_git(
+            # Submodules are not entered: their own filters would run.  Their files are still
+            # bound by the plain directory walk below.
+            repo_root, "status", "--porcelain=v1", "-z", "--untracked-files=all",
+            "--ignore-submodules=all",
+        )
+    except OSError as exc:
+        raise QualityError(f"cannot determine working-tree review scope: {exc}") from exc
+    if status.returncode != 0:
+        raise QualityError("cannot determine working-tree review scope")
+    entries = status.stdout.split(b"\0")
+    paths: set[str] = set()
+    index = 0
+    while index < len(entries) and entries[index]:
+        record = entries[index]
+        if len(record) < 4:
+            raise QualityError("malformed git status entry in review scope")
+        paths.add(os.fsdecode(record[3:]))
+        if b"R" in record[:2] or b"C" in record[:2]:
+            index += 1  # -z emits the old rename/copy name as a second field
+            if index >= len(entries) or not entries[index]:
+                raise QualityError("malformed git status entry in review scope")
+        index += 1
+    completed = _scope_git(repo_root, "diff", "--name-only", "-z", f"{base_commit}..HEAD")
+    if completed.returncode != 0:
+        detail = os.fsdecode(completed.stderr).strip() or "unknown git error"
+        raise QualityError(
+            f"cannot determine committed review scope from {base_commit!r}: {detail}"
+        )
+    paths.update(os.fsdecode(item) for item in completed.stdout.split(b"\0") if item)
+    walked_links: set[str] = set()
+    delta = _worktree_delta(repo_root, base_commit, walked_links)
+    if bound_links is not None:
+        bound_links.update(_ignored_by_git(repo_root, walked_links - paths))
+    paths.update(delta)
     out: list[str] = []
     for p in sorted(paths):
         if p == ".hw" or p.startswith(".hw/"):
             continue
         out.append(p)
     return out
+
+
+def _review_target(repo_root: Path, run_id: str, state: RunState) -> tuple[list[str], Path] | None:
+    """The persisted review target of a REVIEW run; refused on every other run."""
+    target_path = repo_root / ".hw" / run_id / "review-target.json"
+    if not os.path.lexists(target_path):
+        return None
+    try:
+        from hyperwilfred_core.schemas import ReviewTarget
+
+        raw = _stable_regular_bytes(target_path, root=repo_root, label="review target")
+        target = ReviewTarget.model_validate_json(raw or b"")
+        if getattr(state, "mode", None) is not BuildMode.REVIEW:
+            raise ValueError("a review target is only honored on a review run")
+        if target.run_id != run_id:
+            raise ValueError("review target belongs to another run")
+        if target.root != ".":
+            path_safety.validate_relative_path(
+                target.root, label="review target root", allow_glob=True,
+            )
+        if Path(target.root) != Path(state.product_dir):
+            raise ValueError("review target root differs from the run's product directory")
+        for relative in target.resolved_paths:
+            path_safety.validate_relative_path(
+                relative, label="review target path", allow_glob=True,
+            )
+        return list(target.resolved_paths), repo_root / target.root
+    except (OSError, ValueError, QualityError) as exc:
+        raise QualityError(f"review target is unreadable or invalid: {exc}") from exc
+
+
+def product_snapshot_sha256(repo_root: Path, state: RunState) -> str:
+    """Digest exact reviewed bytes; symlinks are never valid review evidence."""
+    files: dict[str, str] = {}
+    links: set[str] = set()
+    override = _review_target(repo_root, state.run_id, state)
+    if override is not None:
+        reviewed_paths, review_root = override
+    else:
+        reviewed_paths = _changed_product_paths(
+            repo_root, state.base_commit, product_dir=state.product_dir, bound_links=links,
+        )
+        review_root = repo_root
+    for relative in reviewed_paths:
+        if Path(relative).is_absolute() or ".." in Path(relative).parts:
+            raise QualityError("changed product path escapes the repository")
+        path = review_root / relative
+        try:
+            relative.encode("utf-8")
+        except UnicodeEncodeError as exc:
+            raise QualityError(f"reviewed path {relative!r} cannot be encoded") from exc
+        if relative in links:
+            files[relative] = _link_entry(review_root, relative)
+            continue
+        raw = _stable_regular_bytes(
+            path, root=review_root, label=f"reviewed path {relative!r}", allow_missing=True,
+        )
+        files[relative] = "missing" if raw is None else hashlib.sha256(raw).hexdigest()
+    identity = [str(repo_root.resolve()), state.base_commit, state.product_dir]
+    return approvals.digest({"repository": identity, "files": files})
+
+
+def _review_scope_sha256(
+    repo_root: Path, run_id: str, state: RunState, packet_id: str,
+) -> str:
+    """Bind review authority to current bytes, packet, and the fresh deterministic report."""
+    run_dir = repo_root / ".hw" / run_id
+    pinned = run_dir / "deterministic-scope.sha256"
+    verification = run_dir / "evidence" / "verification.json"
+    current = product_snapshot_sha256(repo_root, state)
+    if pinned.is_file() != verification.is_file():
+        raise QualityError("deterministic review evidence is partial")
+    if pinned.is_file():
+        observed = pinned.read_text(encoding="utf-8").strip()
+        if state.deterministic_evidence_emitted:
+            if state.deterministic_scope_sha256 is None:
+                raise QualityError("deterministic scope anchor is missing from run state")
+            if observed != state.deterministic_scope_sha256:
+                raise QualityError("deterministic scope pin differs from its run-state anchor")
+        if observed != current:
+            raise QualityError("deterministic gate is stale for the current product snapshot")
+        deterministic = _sha(verification)
+    else:
+        if state.deterministic_evidence_emitted:
+            raise QualityError("deterministic review evidence was removed")
+        q = _ensure_quality(state)
+        gate_status = state.step_status.get(q.det_gate_step, StepStatus.PENDING)
+        deterministic = f"legacy:{q.det_gate_step}:{gate_status.value}"
+    iteration = _ensure_quality(state).iteration
+    suffix = packet_id.removeprefix(f"critic-{iteration}-")
+    packet = run_dir / "quality" / f"iter-{iteration}" / "critic-packets" / f"{suffix}.json"
+    return approvals.digest(
+        [current, deterministic, _sha(packet) if packet.is_file() else None]
+    )
 
 
 def _critique_target_paths(repo_root: Path, run_id: str) -> list[str]:
@@ -234,19 +947,36 @@ def _critique_target_paths(repo_root: Path, run_id: str) -> list[str]:
     (every BUILD / IMPROVE run) they review the build's changed product paths, exactly as before.
     Additive: with no ``review-target.json`` the behaviour is byte-identical to the Phase-2 path.
     """
-    target_path = repo_root / ".hw" / run_id / "review-target.json"
-    if target_path.exists():
-        try:
-            from hyperwilfred_core.schemas import ReviewTarget
+    from hyperwilfred_core.engine import EngineError, RunPaths, load_state
 
-            target = ReviewTarget.model_validate_json(target_path.read_text(encoding="utf-8"))
-            return list(target.resolved_paths)
-        except (OSError, ValueError) as exc:
+    try:
+        state = load_state(RunPaths(repo_root, run_id))
+    except (EngineError, OSError, ValueError) as exc:
+        if os.path.lexists(repo_root / ".hw" / run_id / "review-target.json"):
             raise QualityError(f"review target is unreadable or invalid: {exc}") from exc
-    from hyperwilfred_core.engine import RunPaths, load_state
-
-    state = load_state(RunPaths(repo_root, run_id))
-    return _changed_product_paths(repo_root, state.base_commit)
+        raise
+    override = _review_target(repo_root, run_id, state)
+    if override is not None:
+        paths, review_root = override
+        for relative in paths:
+            _stable_regular_bytes(
+                review_root / relative, root=review_root,
+                label=f"reviewed path {relative!r}", allow_missing=False,
+            )
+        return paths
+    links: set[str] = set()
+    paths = _changed_product_paths(
+        repo_root, state.base_commit, product_dir=state.product_dir, bound_links=links,
+    )
+    for relative in paths:
+        if relative in links:
+            _link_entry(repo_root, relative)
+            continue
+        _stable_regular_bytes(
+            repo_root / relative, root=repo_root,
+            label=f"changed product path {relative!r}", allow_missing=True,
+        )
+    return paths
 
 
 def _load_guardrails(repo_root: Path, run_id: str) -> GuardrailConfig:
@@ -281,15 +1011,32 @@ def _patch_allowed_globs(repo_root: Path, run_id: str, product_dir: str) -> list
 
 
 def _read_critique_reports(repo_root: Path, run_id: str, iteration: int) -> list[CritiqueReport]:
+    RunPaths, load_state, _save_state = _io()
+    state = load_state(RunPaths(repo_root, run_id))
     critics_dir = _iter_dir(repo_root, run_id, iteration) / "critics"
-    if not critics_dir.exists():
-        return []
+    packet_dir = _iter_dir(repo_root, run_id, iteration) / "critic-packets"
+    packets = [
+        CritiquePacket.model_validate_json(path.read_text(encoding="utf-8"))
+        for path in sorted(packet_dir.glob("*.json"))
+    ]
     reports: list[CritiqueReport] = []
-    for f in sorted(critics_dir.glob("*.json")):
-        try:
-            report = CritiqueReport.model_validate_json(f.read_text(encoding="utf-8"))
-        except ValueError:
+    for lens in required_lenses(state):
+        matching = [
+            packet for packet in packets
+            if packet.run_id == run_id and packet.iteration == iteration and packet.lens == lens
+        ]
+        if len(matching) > 1:
+            raise QualityError(f"ambiguous canonical critique packet for lens {lens!r}")
+        if not matching:
             continue
+        expected = critics_dir / f"{lens}.json"
+        if (repo_root / matching[0].result_path).resolve() != expected.resolve():
+            raise QualityError(f"non-canonical critique result path for lens {lens!r}")
+        if not expected.exists():
+            continue
+        report = CritiqueReport.model_validate_json(expected.read_text(encoding="utf-8"))
+        if report.lens != lens:
+            raise QualityError(f"canonical critique file for {lens!r} contains {report.lens!r}")
         # Deterministic severity floor, re-applied on every read so a hand-edited or legacy file
         # can never smuggle a personal-data / bypass / divergence finding through as "minor".
         report.findings = [severity_floor.floor_finding(x) for x in report.findings]
@@ -325,7 +1072,9 @@ def _io() -> tuple:
 
 
 def _sha(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+    raw = _stable_regular_bytes(path, label=str(path))
+    assert raw is not None
+    return hashlib.sha256(raw).hexdigest()
 
 
 def resolve_lenses(state: RunState) -> tuple[str, ...]:
@@ -374,10 +1123,21 @@ def required_lenses(state: RunState) -> tuple[str, ...]:
     return resolve_lenses(state)
 
 
-def _review_evidence(repo_root: Path, run_id: str, q: QualityLoopState) -> list[str]:
+def _review_evidence(
+    repo_root: Path, run_id: str, q: QualityLoopState, state: RunState,
+) -> list[str]:
     directory = _iter_dir(repo_root, run_id, q.iteration)
-    files = [directory / "subjective.json", *sorted((directory / "critics").glob("*.json"))]
+    reports = _read_critique_reports(repo_root, run_id, q.iteration)
+    files = [
+        directory / "subjective.json",
+        *(directory / "critics" / f"{report.lens}.json" for report in reports),
+    ]
+    verification = repo_root / ".hw" / run_id / "evidence" / "verification.json"
+    evidence = [f"product_snapshot_sha256:{product_snapshot_sha256(repo_root, state)}"]
+    if verification.is_file():
+        evidence.append(f"deterministic_verification_sha256:{_sha(verification)}")
     return [
+        *evidence,
         *(f"record:{key}:{value}" for key, value in sorted(q.record_hashes.items())
           if key.startswith(f"{q.iteration}:")),
         *(f"file:{path.relative_to(directory)}:{_sha(path)}" for path in files if path.is_file()),
@@ -395,35 +1155,63 @@ def _reset_review(state: RunState) -> None:
 def _record_intact(*, q: QualityLoopState, key: str, path: Path) -> bool:
     """The record on disk is byte-identical to what the engine recorded."""
     expected = q.record_hashes.get(f"{q.iteration}:{key}")
-    return expected is not None and path.exists() and _sha(path) == expected
+    try:
+        return expected is not None and path.exists() and _sha(path) == expected
+    except (OSError, QualityError):
+        return False
 
 
 def _record_attested(
-    *, repo_root: Path, run_id: str, q: QualityLoopState, key: str, path: Path,
-    packet_id: str, lens: str,
+    *, repo_root: Path, run_id: str, state: RunState, q: QualityLoopState, key: str,
+    path: Path, packet_id: str, lens: str, review_public_key_path: Path | None = None,
 ) -> bool:
-    """The record is intact AND its external independent-review attestation verifies."""
-    gate_id = q.review_attestations.get(f"{q.iteration}:{key}")
-    if gate_id is None or not _record_intact(q=q, key=key, path=path):
+    anchor_key = f"{q.iteration}:{key}"
+    anchor = q.review_trust_anchors.get(anchor_key)
+    if anchor is None or q.review_attestations.get(anchor_key) != anchor.gate_id:
+        return False
+    gate_id = anchor.gate_id
+    if not _record_intact(q=q, key=key, path=path):
         return False
     directory = repo_root / ".hw" / run_id / "review-attestations"
+    try:
+        scope_sha256 = _review_scope_sha256(repo_root, run_id, state, packet_id)
+    except QualityError:
+        return False
     action, evidence = _attestation_values(
         run_id=run_id, iteration=q.iteration, packet_id=packet_id, lens=lens,
-        record_sha256=_sha(path),
+        record_sha256=_sha(path), scope_sha256=scope_sha256,
     )
     token = directory / f"{gate_id}.decision.json"
+    pinned_key = directory / f"{gate_id}.public-key.pem"
     try:
+        # Verification never depends on earlier calls in this process: a key accepted
+        # through an explicit argument must be passed again; otherwise the installed
+        # default key decides.
+        external_key = _external_review_key(
+            review_public_key_path or approvals.DEFAULT_REVIEW_ATTESTATION_PUBLIC_KEY_PATH,
+            repo_root, state,
+        )
+        external_fingerprint = approvals.public_key_fingerprint(external_key)
+        if external_fingerprint != anchor.external_key_fingerprint:
+            return False
+        if approvals.public_key_fingerprint(pinned_key) != external_fingerprint:
+            return False
+        transaction_sha256 = _verify_finalized(directory, gate_id, _sha(path))
+        if transaction_sha256 != anchor.transaction_sha256:
+            return False
         decision, _reviewer, _note = approvals.verify_and_consume(
             directory, gate_id, token, expected_run_id=run_id,
-            public_key_path=approvals.DEFAULT_REVIEW_ATTESTATION_PUBLIC_KEY_PATH,
+            public_key_path=external_key,
             expected_action=action, expected_evidence=evidence, consume=False, recorded=True,
         )
         return decision == "approve"
-    except (approvals.ApprovalError, OSError, ValueError):
+    except (approvals.ApprovalError, QualityError, OSError, ValueError):
         return False
 
 
-def critic_authorship(*, repo_root: Path, run_id: str, state: RunState) -> dict[str, str]:
+def critic_authorship(
+    *, repo_root: Path, run_id: str, state: RunState, review_public_key_path: Path | None = None,
+) -> dict[str, str]:
     """Who wrote each required critique of the current iteration (fail closed).
 
     ``independent`` only when the record says so, is byte-identical to what the engine recorded
@@ -449,8 +1237,9 @@ def critic_authorship(*, repo_root: Path, run_id: str, state: RunState) -> dict[
         if report is None or report.lens != lens:
             authors[lens] = "missing"
         elif report.author is ReviewAuthor.INDEPENDENT and _record_attested(
-            repo_root=repo_root, run_id=run_id, q=q, key=lens, path=path,
+            repo_root=repo_root, run_id=run_id, state=state, q=q, key=lens, path=path,
             packet_id=f"critic-{q.iteration}-{lens}", lens=lens,
+            review_public_key_path=review_public_key_path,
         ):
             authors[lens] = ReviewAuthor.INDEPENDENT.value
         else:
@@ -458,11 +1247,16 @@ def critic_authorship(*, repo_root: Path, run_id: str, state: RunState) -> dict[
     return authors
 
 
-def provenance_report(*, repo_root: Path, run_id: str, state: RunState) -> dict:
+def provenance_report(
+    *, repo_root: Path, run_id: str, state: RunState,
+    review_public_key_path: Path | None = None,
+) -> dict:
     """Who authored the FINAL iteration's evaluation + critiques (fail closed).
 
     ``ok`` is True iff the subjective evaluation and every required lens are present AND
     independent. Anything adapter-authored, unlabelled (legacy state) or missing is not.
+    Attested reviews are verified with *review_public_key_path* when the caller passes it,
+    otherwise with the installed default review key; no earlier call changes that choice.
     """
     q = _ensure_quality(state)
     subjective = _load_subjective(repo_root, run_id, q.iteration)
@@ -471,8 +1265,8 @@ def provenance_report(*, repo_root: Path, run_id: str, state: RunState) -> dict:
 
     def _attested(key: str, path: Path, packet_id: str, lens: str) -> bool:
         return _record_attested(
-            repo_root=repo_root, run_id=run_id, q=q, key=key, path=path,
-            packet_id=packet_id, lens=lens,
+            repo_root=repo_root, run_id=run_id, state=state, q=q, key=key, path=path,
+            packet_id=packet_id, lens=lens, review_public_key_path=review_public_key_path,
         )
 
     adapter: list[str] = []
@@ -501,9 +1295,12 @@ def provenance_report(*, repo_root: Path, run_id: str, state: RunState) -> dict:
     if override is not None and override.iteration == q.iteration and override.gate_id:
         gates_dir = repo_root / ".hw" / run_id / "gates"
         token = gates_dir / f"{override.gate_id}.decision.json"
-        evidence = [f"claimed_by:{override.claimed_by}", f"reason:{override.claimed_reason}",
-                    *_review_evidence(repo_root, run_id, q)]
         try:
+            evidence = [
+                f"claimed_by:{override.claimed_by}",
+                f"reason:{override.claimed_reason}",
+                *_review_evidence(repo_root, run_id, q, state),
+            ]
             decision, signed_by, signed_note = approvals.verify_and_consume(
                 gates_dir, override.gate_id, token, expected_run_id=run_id,
                 expected_action=(
@@ -514,7 +1311,7 @@ def provenance_report(*, repo_root: Path, run_id: str, state: RunState) -> dict:
             override_active = (decision == "approve" and override.evidence == evidence
                                and override.by == signed_by
                                and override.reason == (signed_note or override.claimed_reason))
-        except (approvals.ApprovalError, ValueError, OSError):
+        except (approvals.ApprovalError, QualityError, ValueError, OSError):
             pass
     return {
         "iteration": q.iteration,
@@ -564,12 +1361,14 @@ def record_independent_override(
     paths = RunPaths(repo_root, run_id)
     state = load_state(paths)
     q = _ensure_quality(state)
+    if not _deterministic_green(state, repo_root, run_id):
+        raise QualityError("deterministic gate is stale for the current product snapshot")
     gates_dir = paths.run_dir / "gates"
     action = f"accept non-independent quality review for iteration {q.iteration}"
     evidence = [
         f"claimed_by:{by.strip()}",
         f"reason:{reason.strip()}",
-        *_review_evidence(repo_root, run_id, q),
+        *_review_evidence(repo_root, run_id, q, state),
     ]
     gate_id = approvals.evidence_gate_id(gates_dir, f"independent-override-{q.iteration}", evidence)
     challenge_path = approvals.challenge_file(gates_dir, gate_id)
@@ -627,7 +1426,9 @@ def record_independent_override(
 # --------------------------------------------------------------------------- hw quality-status
 
 
-def quality_status(*, repo_root: Path, run_id: str) -> dict:
+def quality_status(
+    *, repo_root: Path, run_id: str, review_public_key_path: Path | None = None,
+) -> dict:
     """Report the loop's current phase and what the adapter must do next."""
     RunPaths, load_state, save_state = _io()
     paths = RunPaths(repo_root, run_id)
@@ -643,11 +1444,14 @@ def quality_status(*, repo_root: Path, run_id: str) -> dict:
         "max_iterations": q.max_iterations,
         "subjective_threshold": q.subjective_threshold,
         "det_gate_step": q.det_gate_step,
-        "deterministic_green": _deterministic_green(state),
+        "deterministic_green": _deterministic_green(state, repo_root, run_id),
         "product_dir": product_dir,
     }
     if q.phase in (QualityPhase.EVALUATE, QualityPhase.PASSED, QualityPhase.FALLBACK):
-        prov = provenance_report(repo_root=repo_root, run_id=run_id, state=state)
+        prov = provenance_report(
+            repo_root=repo_root, run_id=run_id, state=state,
+            review_public_key_path=review_public_key_path,
+        )
         base["provenance"] = prov
         base["provenance_banner"] = provenance_banner(prov)
         if q.passed and not prov["ok"] and prov["override"] is None:
@@ -664,7 +1468,9 @@ def quality_status(*, repo_root: Path, run_id: str) -> dict:
                 "subjective_result_path": str(
                     (iter_dir / "subjective.json").relative_to(repo_root)
                 ),
-                "changed_paths": _changed_product_paths(repo_root, state.base_commit),
+                "changed_paths": _changed_product_paths(
+                    repo_root, state.base_commit, product_dir=state.product_dir,
+                ),
                 "next": (
                     "run the deterministic gate (`hw evaluate --step "
                     f"{q.det_gate_step}`), then write the 0-5 evaluation, call "
@@ -675,10 +1481,13 @@ def quality_status(*, repo_root: Path, run_id: str) -> dict:
         )
     elif q.phase is QualityPhase.PATCH:
         base.update({"action": "patch", "next": "run `hw patch-plan` then dispatch the patcher"})
-    elif q.phase is QualityPhase.PASSED:
-        base.update({"action": "done", "passed": True, "used_fallback": q.used_fallback})
-    elif q.phase is QualityPhase.FALLBACK:
-        base.update({"action": "done", "passed": True, "used_fallback": True})
+    elif q.phase in (QualityPhase.PASSED, QualityPhase.FALLBACK):
+        if base["deterministic_green"]:
+            base.update({"action": "done", "passed": True,
+                         "used_fallback": q.phase is QualityPhase.FALLBACK})
+        else:
+            base.update({"action": "evaluate", "passed": False,
+                         "next": "product changed; re-run the deterministic gate"})
     else:  # ESCALATED
         base.update({"action": "escalated", "passed": False, "open_blocker": q.open_blocker})
     return base
@@ -689,7 +1498,7 @@ def quality_status(*, repo_root: Path, run_id: str) -> dict:
 
 def record_subjective(
     *, repo_root: Path, run_id: str, result_file: str, author: str | None = None,
-    attestation_file: str | None = None,
+    attestation_file: str | None = None, review_public_key_path: Path | None = None,
 ) -> dict:
     """Ingest the 0-5 evaluation, recompute ``global_score`` as the MIN, persist it.
 
@@ -716,11 +1525,14 @@ def record_subjective(
     # label alone is never authority; only the separately held review key can promote the record.
     evaluation.author = ReviewAuthor.INDEPENDENT
     independent_bytes = evaluation.model_dump_json(indent=2) + "\n"
-    accepted_author, attestation_id, attestation = _attested_author(
+    attestation_key = f"{q.iteration}:subjective"
+    accepted_author, attestation_id, external_fingerprint, attestation = _attested_author(
         paths=paths, run_id=run_id, iteration=q.iteration,
         packet_id=f"subjective-{q.iteration}", lens="subjective",
         record_sha256=hashlib.sha256(independent_bytes.encode()).hexdigest(),
         requested=author, attestation_file=attestation_file,
+        recorded_attestation=q.review_attestations.get(attestation_key),
+        state=state, review_public_key_path=review_public_key_path,
     )
     evaluation.author = accepted_author
 
@@ -729,9 +1541,9 @@ def record_subjective(
         iter_dir / "subjective.json", evaluation.model_dump_json(indent=2) + "\n"
     )
     q.record_hashes[f"{q.iteration}:subjective"] = _sha(iter_dir / "subjective.json")
-    attestation_key = f"{q.iteration}:subjective"
     if attestation_id is None:
         q.review_attestations.pop(attestation_key, None)
+        q.review_trust_anchors.pop(attestation_key, None)
     else:
         q.review_attestations[attestation_key] = attestation_id
     _reset_review(state)
@@ -741,6 +1553,17 @@ def record_subjective(
         q.best_global_score = min_score
         q.best_iteration = q.iteration
     state.quality = q
+    if attestation_id is not None:
+        transaction_sha256 = _finalize_attestation(
+            paths.run_dir / "review-attestations", attestation_id,
+            q.record_hashes[f"{q.iteration}:subjective"],
+        )
+        assert external_fingerprint is not None
+        q.review_trust_anchors[attestation_key] = ReviewTrustAnchor(
+            gate_id=attestation_id,
+            external_key_fingerprint=external_fingerprint,
+            transaction_sha256=transaction_sha256,
+        )
     save_state(paths, state)
 
     RunStore(paths.run_dir).append_event(
@@ -820,6 +1643,7 @@ def critique_plan(*, repo_root: Path, run_id: str) -> dict:
 def record_critique(
     *, repo_root: Path, run_id: str, packet_id: str, result_file: str,
     author: str | None = None, attestation_file: str | None = None,
+    review_public_key_path: Path | None = None,
 ) -> dict:
     """Ingest+validate one critic's findings JSON (read-only — no acceptance gate)."""
     RunPaths, load_state, save_state = _io()
@@ -868,10 +1692,13 @@ def record_critique(
     report.findings = [severity_floor.floor_finding(f) for f in report.findings]
     report.author = ReviewAuthor.INDEPENDENT
     independent_bytes = report.model_dump_json(indent=2) + "\n"
-    accepted_author, attestation_id, attestation = _attested_author(
+    attestation_key = f"{q.iteration}:{report.lens}"
+    accepted_author, attestation_id, external_fingerprint, attestation = _attested_author(
         paths=paths, run_id=run_id, iteration=q.iteration, packet_id=packet_id,
         lens=report.lens, record_sha256=hashlib.sha256(independent_bytes.encode()).hexdigest(),
         requested=author, attestation_file=attestation_file,
+        recorded_attestation=q.review_attestations.get(attestation_key),
+        state=state, review_public_key_path=review_public_key_path,
     )
     report.author = accepted_author
 
@@ -881,13 +1708,24 @@ def record_critique(
     q.record_hashes[f"{q.iteration}:{report.lens}"] = _sha(
         iter_dir / "critics" / f"{report.lens}.json"
     )
-    attestation_key = f"{q.iteration}:{report.lens}"
     if attestation_id is None:
         q.review_attestations.pop(attestation_key, None)
+        q.review_trust_anchors.pop(attestation_key, None)
     else:
         q.review_attestations[attestation_key] = attestation_id
     _reset_review(state)
     state.quality = q
+    if attestation_id is not None:
+        transaction_sha256 = _finalize_attestation(
+            paths.run_dir / "review-attestations", attestation_id,
+            q.record_hashes[f"{q.iteration}:{report.lens}"],
+        )
+        assert external_fingerprint is not None
+        q.review_trust_anchors[attestation_key] = ReviewTrustAnchor(
+            gate_id=attestation_id,
+            external_key_fingerprint=external_fingerprint,
+            transaction_sha256=transaction_sha256,
+        )
     save_state(paths, state)
 
     by_sev = {s.value: 0 for s in CriticSeverity}
@@ -935,7 +1773,9 @@ def _require_adversarial_evidence(report: CritiqueReport) -> None:
 # --------------------------------------------------------------------------- hw quality-gate
 
 
-def quality_gate(*, repo_root: Path, run_id: str) -> dict:
+def quality_gate(
+    *, repo_root: Path, run_id: str, review_public_key_path: Path | None = None,
+) -> dict:
     """THE quality decision: pass / iterate / escalate (precedence-correct).
 
     Order of checks IS the precedence rule:
@@ -983,7 +1823,7 @@ def quality_gate(*, repo_root: Path, run_id: str) -> dict:
             ):
                 open_floor += 1
 
-    det_green = _deterministic_green(state)
+    det_green = _deterministic_green(state, repo_root, run_id)
     q.open_blocker = open_blocker
     q.open_major = open_major
     q.open_minor = open_minor
@@ -1041,7 +1881,10 @@ def quality_gate(*, repo_root: Path, run_id: str) -> dict:
                 "reason": "open major findings survived the budget — escalated to a human"}
 
     # 3. No blocker, subjective meets threshold → PASS (if the review was independent).
-    prov = provenance_report(repo_root=repo_root, run_id=run_id, state=state)
+    prov = provenance_report(
+        repo_root=repo_root, run_id=run_id, state=state,
+        review_public_key_path=review_public_key_path,
+    )
     prov_blocks = (
         not prov["ok"]
         and prov["override"] is None
@@ -1066,11 +1909,20 @@ def quality_gate(*, repo_root: Path, run_id: str) -> dict:
             "passed": False,
             "adapter_authored": prov["adapter_authored"],
             "missing": prov["missing"],
-            "reason": "the final iteration was not independently reviewed — dispatch "
-            "sub-agent critics (re-dispatch after a usage-limit reset) and re-record them "
-            "with author=independent, or have a human run `hw quality-override`",
+            "reason": "the final iteration lacks signed independent review. For each external "
+            "result, first record with `--author independent` to create a challenge; have the "
+            "trusted external reviewer sign it, place the token at the reported decision path, "
+            "then repeat the same record command with `--attestation-file`. If no trusted signer "
+            "or review-attestation public key exists, remain pending; only a human may run "
+            "`hw quality-override`",
         }
     if subjective.global_score >= q.subjective_threshold:
+        # The checkout must hold only accepted work: the commit after the last accepted packet
+        # (or patch) is never seen by registration. Refused before any state changes.
+        from hyperwilfred_core import engine as engine_module
+
+        engine_module.require_accepted_head(repo_root=repo_root, run_id=run_id,
+                                            stage="quality pass")
         q.phase = QualityPhase.PASSED
         q.passed = True
         state.quality = q
@@ -1224,16 +2076,35 @@ def record_patch(
     if not packet_path.exists():
         raise QualityError("no patch packet — run `hw patch-plan` first")
     packet = PatchPacket.model_validate_json(packet_path.read_text(encoding="utf-8"))
-    if packet.packet_id != packet_id:
-        raise QualityError(f"packet id mismatch: expected {packet.packet_id!r}, got {packet_id!r}")
+    if packet.packet_id != packet_id or packet.run_id != run_id or packet.iteration != q.iteration:
+        raise QualityError("patch packet does not match this run and iteration")
 
-    resolved_result = result_file or packet.result_path
+    expected_result = iter_dir / "patch-result.json"
+    if (repo_root / packet.result_path).absolute() != expected_result.absolute():
+        raise QualityError("patch packet result_path is outside this iteration")
+    if result_file is not None:
+        requested = Path(result_file)
+        if not requested.is_absolute():
+            requested = repo_root / requested
+        if requested.absolute() != expected_result.absolute():
+            raise QualityError("result file must match this patch packet's result_path")
+    from hyperwilfred_core import engine as engine_module
+    try:
+        result_payload = engine_module.require_packet_result(expected_result, repo_root)
+        bound_worktree = engine_module.require_packet_worktree(
+            repo_root=repo_root, state=state, packet_id=packet_id, worktree=worktree,
+            kind="patch", iteration=q.iteration,
+        )
+    except engine_module.EngineError as exc:
+        raise QualityError(str(exc)) from exc
+    accepted_changes: dict[str, list[str] | None] = {}
     verdict = guardrails.accept(
         packet_id=packet_id,
-        worktree=worktree,
+        worktree=bound_worktree,
+        accepted_changes_out=accepted_changes,
         allowed_globs=packet.allowed_globs,
         blocked_globs=packet.blocked_globs,
-        result_file=resolved_result,
+        result_file=None,
         max_changed_lines=packet.max_changed_lines,
         max_hunk_span=packet.max_hunk_span,
         full_file_ratio=packet.full_file_ratio,
@@ -1242,11 +2113,19 @@ def record_patch(
             [g.path for g in packet.generated_artifacts], packet.allowed_globs
         ),
     )
+    verdict.result_read_from_disk = True
+    verdict.result_bytes = len(result_payload)
     atomic_write_text(
         iter_dir / "patch-verdict.json", verdict.model_dump_json(indent=2) + "\n"
     )
 
     if verdict.accepted:
+        try:
+            engine_module.record_accepted_changes(
+                paths, state, engine_module._worktree_slot(
+                    packet_id, kind="patch", iteration=q.iteration), accepted_changes)
+        except engine_module.EngineError as exc:
+            raise QualityError(str(exc)) from exc
         if q.history:
             q.history[-1].patched = True
         q.iteration += 1
@@ -1292,6 +2171,7 @@ __all__ = [
     "record_independent_override",
     "required_lenses",
     "patch_plan",
+    "product_snapshot_sha256",
     "quality_gate",
     "quality_status",
     "record_critique",

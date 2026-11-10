@@ -70,6 +70,7 @@ def test_full_build_spine_reaches_ship(git_repo: Path, approval_key) -> None:  #
     assert s["kind"] == "fanout"
     fo = engine.fanout_plan(repo_root=repo, run_id="e2e")
     assert len(fo["waves"]) == 1 and fo["waves"][0][0]["packet_id"] == "lib"
+    engine.register_worktree(repo_root=repo, run_id="e2e", packet_id="lib", worktree=str(repo))
 
     # the "worker" writes IN-SCOPE files into product/ + its result file
     product = repo / "product"

@@ -34,7 +34,13 @@ MAX_FIELD_PROBLEMS = 5
 # snapshot (``steps`` only gives the step order); the rest is recognised but not shown.
 _COPIED_KEYS = ("run_id", "mode", "tier", "status", "step_status", "created_at", "updated_at")
 KNOWN_STATE_KEYS = frozenset(
-    {*_COPIED_KEYS, "steps", "quality", "objective", "product_dir", "base_commit"}
+    {
+        *_COPIED_KEYS, "steps", "quality", "objective", "product_dir", "base_commit",
+        "base_collection_sha256", "deterministic_evidence_emitted",
+        "deterministic_scope_sha256", "deterministic_target", "packet_worktrees",
+        "regression_baseline_recorded_at", "regression_baseline_sha256",
+        "regression_baseline_source_file", "regression_baseline_source_run_id",
+    }
 )
 
 

@@ -96,6 +96,9 @@ def test_record_result_accepts_in_scope(git_repo: Path, tmp_path: Path) -> None:
     paths = engine.RunPaths(git_repo, "r5")
     _write_plan(paths, [Slice(id="a", title="A", allowed_globs=["src/**", ".hw/**"])])
     engine.fanout_plan(repo_root=git_repo, run_id="r5")
+    engine.register_worktree(repo_root=git_repo, run_id="r5", packet_id="a", worktree=str(git_repo))
+    paths.results_dir.mkdir(parents=True, exist_ok=True)
+    (paths.results_dir / "a.json").write_text('{"status": "done"}\n')
 
     (git_repo / "src" / "new.py").write_text("v = 1\n", encoding="utf-8")
     out = engine.record_result(
@@ -109,6 +112,9 @@ def test_record_result_rejects_and_rolls_back_escape(git_repo: Path) -> None:
     paths = engine.RunPaths(git_repo, "r6")
     _write_plan(paths, [Slice(id="a", title="A", allowed_globs=["src/**"])])
     engine.fanout_plan(repo_root=git_repo, run_id="r6")
+    engine.register_worktree(repo_root=git_repo, run_id="r6", packet_id="a", worktree=str(git_repo))
+    paths.results_dir.mkdir(parents=True, exist_ok=True)
+    (paths.results_dir / "a.json").write_text('{"status": "done"}\n')
 
     (git_repo / "src" / "ok.py").write_text("v = 1\n", encoding="utf-8")
     (git_repo / "evil.py").write_text("danger\n", encoding="utf-8")

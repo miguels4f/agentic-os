@@ -81,9 +81,10 @@ PILOT_LESSONS: tuple[Lesson, ...] = (
     Lesson(
         lesson_id="PILOT-L1",
         title="No silent pass on adapter self-review",
-        lesson="Only a dispatched sub-agent's review counts as independent. If critics cannot run "
-        "(HTTP 429), stop at PENDING_INDEPENDENT_REVIEW and re-dispatch after the reset; never "
-        "relabel your own writing as independent. Only a human may `hw quality-override`.",
+        lesson="A separate reviewer produces a report, but only an external signer whose key is "
+        "unavailable to the repository and workers can sign the exact challenge. The second call "
+        "must supply `--attestation-file`; without that signer/key, stop at "
+        "PENDING_INDEPENDENT_REVIEW. Never use a fixture key or relabel unsigned work.",
         applies_to_steps=["quality", "ship"],
         enforced_by="quality.quality_gate provenance check; gates.gate_open banner",
     ),
@@ -589,6 +590,18 @@ def _count_by_status(proposals: list[LearningProposal]) -> dict[str, int]:
     return out
 
 
+def _proposal_review_evidence(proposal: LearningProposal) -> list[str]:
+    """Show and bind all proposal content while excluding engine-owned lifecycle fields."""
+    content = proposal.model_dump(
+        mode="json", exclude={"status", "review_gate_id", "promoted_run_id"},
+    )
+    return [
+        *proposal.evidence_refs,
+        f"proposal_sha256:{approvals.digest(content)}",
+        f"proposal_content:{approvals.canonical_bytes(content).decode('utf-8')}",
+    ]
+
+
 # --------------------------------------------------------------------------- hw propose (open gate)
 
 
@@ -616,7 +629,8 @@ def open_review_gate(*, repo_root: Path, proposal_id: str) -> dict:
     )
     challenge = approvals.issue_challenge(
         gdir, run_id="proposals", gate_id=proposal_id,
-        action=f"promote learning proposal {proposal_id}", evidence=proposal.evidence_refs,
+        action=f"promote learning proposal {proposal_id}",
+        evidence=_proposal_review_evidence(proposal),
         purpose="learning-proposal",
     )
     proposal.status = ProposalStatus.UNDER_REVIEW
@@ -637,13 +651,30 @@ def open_review_gate(*, repo_root: Path, proposal_id: str) -> dict:
 
 def _resolve_review(repo_root: Path, proposal: LearningProposal) -> LearningProposal:
     """Flip a proposal only after its signed human decision verifies."""
-    if proposal.status in (ProposalStatus.APPROVED, ProposalStatus.REJECTED,
-                           ProposalStatus.PROMOTED):
+    if proposal.status is ProposalStatus.APPROVED:
+        # A prior status check may have consumed the token. Reverify its signed content
+        # before promotion, since the proposal item remains a mutable disk file.
+        gdir = _gates_dir(repo_root)
+        try:
+            decision = approvals.verify_and_consume(
+                gdir, proposal.proposal_id,
+                gates.decision_file_in(gdir, proposal.proposal_id),
+                expected_run_id="proposals",
+                expected_action=f"promote learning proposal {proposal.proposal_id}",
+                expected_evidence=_proposal_review_evidence(proposal),
+                consume=False, recorded=True,
+            )
+        except (approvals.ApprovalError, OSError, ValueError) as exc:
+            raise LearningError("approved learning proposal changed after human review") from exc
+        if decision[0] != "approve":
+            raise LearningError("learning proposal has no valid approval")
+        return proposal
+    if proposal.status in (ProposalStatus.REJECTED, ProposalStatus.PROMOTED):
         return proposal
     decision = gates.detect_decision_in_dir(
         _gates_dir(repo_root), proposal.proposal_id, expected_run_id="proposals",
         expected_action=f"promote learning proposal {proposal.proposal_id}",
-        expected_evidence=proposal.evidence_refs,
+        expected_evidence=_proposal_review_evidence(proposal),
     )
     if decision is None:
         return proposal
@@ -721,6 +752,9 @@ def promote(*, repo_root: Path, proposal_id: str, run_id: str | None = None) -> 
         repo_root=repo_root,
         objective=proposal.objective,
         run_id=resolved_run_id,
+        # The factory improves its own files: declare the repository root as the target, since
+        # a run without a declared target can no longer obtain a regression baseline.
+        product_dir=".",
         mode=BuildMode.IMPROVE,
     )
     proposal.status = ProposalStatus.PROMOTED

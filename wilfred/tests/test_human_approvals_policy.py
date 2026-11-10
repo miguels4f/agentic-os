@@ -28,6 +28,7 @@ from hyperwilfred_core.schemas import (
     LiveDemo,
     ProposalStatus,
     ReviewAuthor,
+    StepStatus,
 )
 
 VALID = {
@@ -206,11 +207,18 @@ def test_policy_approval_is_inert_once_the_switch_is_removed(
 
 
 def test_policy_does_not_waive_the_deterministic_gate(policy_file: Path, tmp_path: Path) -> None:
-    _run_at_quality(tmp_path, threshold=4, det_green=False)
+    # The override can only be recorded while the deterministic gate is green for the current
+    # product snapshot (S0.2e: an override is bound to green product bytes), so the gate goes
+    # red AFTER the policy approval; the approval must not carry the run past it.
+    paths = _run_at_quality(tmp_path, threshold=4)
     _record_subjective(tmp_path, "q", [5, 5, 5, 5, 5])
     _panel(tmp_path, "q", ReviewAuthor.ADAPTER)
     _switch_on(policy_file)
     _override(tmp_path)
+    state = engine.load_state(paths)
+    assert state.quality is not None
+    state.step_status[state.quality.det_gate_step] = StepStatus.PENDING
+    engine.save_state(paths, state)
     assert quality.quality_gate(repo_root=tmp_path, run_id="q")["action"] == (
         "deterministic_gate_required"
     )

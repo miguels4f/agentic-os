@@ -56,6 +56,7 @@ from pathlib import Path
 from hyperwilfred_core import (
     codex,
     compiler,
+    control_evolution,
     cost,
     engine,
     escalation,
@@ -274,6 +275,14 @@ def _cmd_fanout_plan(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_register_worktree(args: argparse.Namespace) -> int:
+    _emit(engine.register_worktree(
+        repo_root=_repo_root(args), run_id=args.run_id, packet_id=args.packet_id,
+        worktree=args.worktree, kind=args.kind,
+    ))
+    return 0
+
+
 def _cmd_record_result(args: argparse.Namespace) -> int:
     out = engine.record_result(
         repo_root=_repo_root(args),
@@ -294,8 +303,6 @@ def _cmd_evaluate(args: argparse.Namespace) -> int:
             run_id=args.run_id,
             target=Path(args.target).resolve(),
             step_id=args.step,
-            review_public_key_path=(Path(args.review_public_key).resolve()
-                                    if args.review_public_key else None),
         )
     except engine.GateFailure as exc:
         _emit({"run_id": args.run_id, "passed": False, "reason": str(exc)})
@@ -315,6 +322,25 @@ def _cmd_regression_baseline(args: argparse.Namespace) -> int:
             repo_root=_repo_root(args), run_id=args.run_id, target=Path(args.target).resolve()
         )
     )
+    return 0
+
+
+def _cmd_regression_baseline_inherit(args: argparse.Namespace) -> int:
+    _emit(
+        engine.inherit_regression_baseline(
+            repo_root=_repo_root(args), run_id=args.run_id,
+            source_run_id=args.source_run, source_file=Path(args.source_file),
+        )
+    )
+    return 0
+
+
+def _cmd_record_control_review(args: argparse.Namespace) -> int:
+    _emit(control_evolution.record_control_review(
+        repo_root=_repo_root(args), run_id=args.run_id, target=Path(args.target),
+        report_file=Path(args.report_file), dispatch_file=Path(args.dispatch_file),
+        attestation_file=Path(args.attestation_file) if args.attestation_file else None,
+    ))
     return 0
 
 
@@ -345,6 +371,8 @@ def _cmd_quality_status(args: argparse.Namespace) -> int:
 
 
 def _cmd_record_subjective(args: argparse.Namespace) -> int:
+    if args.attestation_file and args.author != "independent":
+        raise quality.QualityError("--attestation-file requires --author independent")
     out = quality.record_subjective(
         repo_root=_repo_root(args), run_id=args.run_id, result_file=args.result_file,
         author=args.author, attestation_file=args.attestation_file,
@@ -359,6 +387,8 @@ def _cmd_critique_plan(args: argparse.Namespace) -> int:
 
 
 def _cmd_record_critique(args: argparse.Namespace) -> int:
+    if args.attestation_file and args.author != "independent":
+        raise quality.QualityError("--attestation-file requires --author independent")
     out = quality.record_critique(
         repo_root=_repo_root(args),
         run_id=args.run_id,
@@ -812,6 +842,15 @@ def build_parser() -> argparse.ArgumentParser:
     sp.add_argument("--step", default="implement")
     sp.set_defaults(func=_cmd_fanout_plan)
 
+    sp = sub.add_parser(
+        "register-worktree", help="bind a clean worktree to one packet before dispatch"
+    )
+    sp.add_argument("--run-id", required=True)
+    sp.add_argument("--packet-id", required=True)
+    sp.add_argument("--worktree", required=True)
+    sp.add_argument("--kind", choices=["build", "patch"], default="build")
+    sp.set_defaults(func=_cmd_register_worktree)
+
     sp = sub.add_parser("record-result", help="acceptance gate for one worktree")
     sp.add_argument("--run-id", required=True)
     sp.add_argument("--packet-id", required=True)
@@ -824,7 +863,6 @@ def build_parser() -> argparse.ArgumentParser:
     sp.add_argument("--run-id", required=True)
     sp.add_argument("--target", required=True, help="path the evaluators check")
     sp.add_argument("--step", default="evaluate")
-    sp.add_argument("--review-public-key", help="trusted coordinator key for semantic test reviews")
     sp.set_defaults(func=_cmd_evaluate)
 
     sp = sub.add_parser("rollback", help="roll a worktree back to a clean HEAD")
@@ -838,6 +876,25 @@ def build_parser() -> argparse.ArgumentParser:
     sp.add_argument("--run-id", required=True)
     sp.add_argument("--target", required=True, help="the existing repo/target to baseline")
     sp.set_defaults(func=_cmd_regression_baseline)
+
+    sp = sub.add_parser(
+        "regression-baseline-inherit", aliases=["regression-baseline-import"],
+        help="inherit exact protected baseline bytes from an earlier run (never runs pytest)",
+    )
+    sp.add_argument("--run-id", required=True, help="destination IMPROVE run")
+    sp.add_argument("--source-run", required=True, help="run that already pins the baseline")
+    sp.add_argument("--source-file", required=True, help="source run baseline file")
+    sp.set_defaults(func=_cmd_regression_baseline_inherit)
+
+    sp = sub.add_parser(
+        "record-control-review", help="prepare or record an exact signed pytest control review",
+    )
+    sp.add_argument("--run-id", required=True)
+    sp.add_argument("--target", required=True)
+    sp.add_argument("--report-file", required=True)
+    sp.add_argument("--dispatch-file", required=True)
+    sp.add_argument("--attestation-file")
+    sp.set_defaults(func=_cmd_record_control_review)
 
     # --- cost accounting ---
     sp = sub.add_parser(
@@ -868,10 +925,13 @@ def build_parser() -> argparse.ArgumentParser:
     sp.add_argument("--result-file", required=True, help="path to the SubjectiveEvaluation JSON")
     sp.add_argument(
         "--author", choices=["independent", "adapter"],
-        help="provenance declared at record time (default: adapter; any `author` inside "
-        "the JSON is ignored). Self-declared: see quality/00_loop.md",
+        help="request external attestation (independent) or record as adapter (default); "
+        "a separate reviewer remains adapter until the exact challenge is signed externally",
     )
-    sp.add_argument("--attestation-file", help="signed external-review attestation token")
+    sp.add_argument(
+        "--attestation-file",
+        help="external signer token for the second call; requires --author independent",
+    )
     sp.set_defaults(func=_cmd_record_subjective)
 
     sp = sub.add_parser("critique-plan", help="emit one read-only critic packet per lens")
@@ -884,10 +944,13 @@ def build_parser() -> argparse.ArgumentParser:
     sp.add_argument("--result-file", required=True, help="path to the CritiqueReport JSON")
     sp.add_argument(
         "--author", choices=["independent", "adapter"],
-        help="provenance declared at record time (default: adapter; any `author` inside "
-        "the JSON is ignored). Self-declared: see quality/00_loop.md",
+        help="request external attestation (independent) or record as adapter (default); "
+        "a separate reviewer remains adapter until the exact challenge is signed externally",
     )
-    sp.add_argument("--attestation-file", help="signed external-review attestation token")
+    sp.add_argument(
+        "--attestation-file",
+        help="external signer token for the second call; requires --author independent",
+    )
     sp.set_defaults(func=_cmd_record_critique)
 
     sp = sub.add_parser(
@@ -1209,6 +1272,9 @@ def main(argv: list[str] | None = None) -> int:
         return int(args.func(args))
     except engine.EngineError as exc:
         _emit({"error": str(exc), "kind": "engine_error"})
+        return 2
+    except control_evolution.ControlEvolutionError as exc:
+        _emit({"error": str(exc), "kind": "control_evolution_error"})
         return 2
     except quality.QualityError as exc:
         _emit({"error": str(exc), "kind": "quality_error"})

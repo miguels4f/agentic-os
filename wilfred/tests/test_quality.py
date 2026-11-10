@@ -267,6 +267,8 @@ def test_patch_accept_increments_iter_and_resets_det_gate(git_repo: Path) -> Non
     pp = quality.patch_plan(repo_root=repo, run_id="p")
     assert pp["packet"]["allowed_globs"] == ["src/**"]
     assert pp["packet"]["max_changed_lines"] <= 80  # tight surgical budget
+    engine.register_worktree(repo_root=repo, run_id="p", packet_id="patch-0",
+                             worktree=str(repo), kind="patch")
 
     # surgical patcher: change ONE line of an existing file, write its result
     app = repo / "src" / "app.py"
@@ -302,6 +304,8 @@ def test_patch_rejects_full_file_rewrite_and_rolls_back(git_repo: Path) -> None:
     )
     _to_patch_phase(repo, "p")
     pp = quality.patch_plan(repo_root=repo, run_id="p")
+    engine.register_worktree(repo_root=repo, run_id="p", packet_id="patch-0",
+                             worktree=str(repo), kind="patch")
 
     # the "patcher" REGENERATES the whole file (60 brand-new lines) — must be rejected.
     (repo / "product" / "mod.py").write_text(

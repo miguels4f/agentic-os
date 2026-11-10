@@ -142,6 +142,9 @@ def test_fanout_packet_carries_generated_artifacts_and_record_result_honours_the
     out = engine.fanout_plan(repo_root=repo, run_id="g")
     pkt = out["waves"][0][0]
     assert pkt["generated_artifacts"][0]["command"] == "make snapshots"
+    engine.register_worktree(repo_root=repo, run_id="g", packet_id="gen", worktree=str(repo))
+    paths.results_dir.mkdir(parents=True, exist_ok=True)
+    (paths.results_dir / "gen.json").write_text('{"status": "done"}\n')
 
     (repo / "snap" / "accounts.json").write_text('{"n": 99, "generated_at": "t1"}', "utf-8")
     res = engine.record_result(

@@ -279,6 +279,9 @@ def _fill_skill_descriptions(desc_dir: Path, root: Path) -> int:
             desc = m.group(1).strip().strip("'\"")
             desc = re.split(r"(?<=[.!?])\s", desc, maxsplit=1)[0][:220]
             entry["description"] = desc
+            n = re.search(r"^name:\s*(.+)$", text.split("\n---", 1)[0], re.M)
+            if n and entry.get("name", "Skill") in ("", "Skill"):
+                entry["name"] = n.group(1).strip().strip("'\"").replace("-", " ").capitalize()
             entry.pop("review", None)
             changed = True
             filled += 1

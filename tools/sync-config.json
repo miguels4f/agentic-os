@@ -45,7 +45,8 @@
       "docs/legacy-assets-register.md",
       "docs/migration.md",
       "docs/acceptance.md",
-      "docs/verification.md"
+      "docs/verification.md",
+      "tests/test_gate0_sec_limits_stated.py"
     ]
   }
 }

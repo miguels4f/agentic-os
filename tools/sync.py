@@ -308,6 +308,7 @@ def redraw_map(root: Path, pmap: dict) -> str:
     shutil.rmtree(desc, ignore_errors=True)
     shutil.copytree(src / "descriptions", desc)
     (fp / "recent-work.json").write_text('{ "tasks": [] }\n', encoding="utf-8")
+    subprocess.run([node, str(scripts / "scan.mjs"), str(root)], capture_output=True, text=True)
     subprocess.run([node, str(scripts / "build.mjs"), str(root), "--no-claude-md"],
                    capture_output=True, text=True)
     subprocess.run([node, str(scripts / "describe.mjs"), str(root)], capture_output=True, text=True)
